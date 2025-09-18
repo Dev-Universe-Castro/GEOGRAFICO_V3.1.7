@@ -1,0 +1,58 @@
+{
+  "paulo.chagas@metalcore.com.br": {
+    "email": "paulo.chagas@metalcore.com.br",
+    "password": "8bd4f0805667896b2e21438ff2ba5eb3:7af5833cd1a64933bede6d2d75070f7dbe74f564b2e067500b429c8ba54b80a9",
+    "full_name": "Paulo",
+    "created_at": "2025-07-31T14:42:33.328553",
+    "last_login": "2025-09-17T10:04:07.624034",
+    "is_active": true
+  },
+  "Paulo": {
+    "email": "paulo@metalcore.com.br",
+    "password": "fa73427b64fa722d6ea3aac286371787:018c8f973277ff23476601a60469b1c1f5c3951fe02cc17ccbb2e79c310bc8b8",
+    "full_name": "Paulo",
+    "created_at": "2025-09-16T16:56:54.444226",
+    "last_login": "2025-09-16T17:08:34.733704",
+    "is_active": true
+  },
+  "Paulo Chagas": {
+    "email": "castroghost2@gmail.com",
+    "password": "f1215baa0bb83798c33b9b2a80035ab7:181268f9d081f00771b47d675730c14af793bce05aa926d8ebac6853c6c02427",
+    "full_name": "Paulo Chagas",
+    "created_at": "2025-09-16T17:21:38.576707",
+    "last_login": "2025-09-16T17:21:46.344152",
+    "is_active": true
+  },
+  "Leandro.Silva": {
+    "email": "leandro.silva@ferticore.com.br",
+    "password": "f61a4f28bc0027315d0ce3c1ff6c07f0:a5a28b6753ba2a4597b251ad1e5a3ee6d3b7a96b1278b69fcffa45de1509ed6c",
+    "full_name": "Leandro da Silva Santos",
+    "created_at": "2025-09-16T17:22:12.346284",
+    "last_login": "2025-09-17T09:38:01.408822",
+    "is_active": true
+  },
+  "sirlima": {
+    "email": "sllucklima@outlook.com",
+    "password": "94b611cd5cf5d1572e760ae8b314308f:ef4a4034c3a200c7045a2d5782ec143c0d8a58a6482f898dc8e6fcc66dd5b73b",
+    "full_name": "Lucas da Silva Lima",
+    "created_at": "2025-09-17T09:34:09.018444",
+    "last_login": null,
+    "is_active": true
+  },
+  "sirlima2": {
+    "email": "sirlima@gmail.com",
+    "password": "142062880be00f292421f78cd11060d7:df0965752b077a9ff706c8713612b5954d2cb532649ffbeb0fc197b3c1330581",
+    "full_name": "luscas",
+    "created_at": "2025-09-17T09:57:37.905128",
+    "last_login": null,
+    "is_active": true
+  },
+  "curol": {
+    "email": "pauloamassa@pica.com",
+    "password": "a467015f9418f2bc92ef296bfa7ef334:402f49cdb352eb13ac25aafb77e43fd12a676fce3c766aa8f15801432a1a5cf4",
+    "full_name": "cu de rola",
+    "created_at": "2025-09-17T10:02:54.167848",
+    "last_login": null,
+    "is_active": true
+  }
+}

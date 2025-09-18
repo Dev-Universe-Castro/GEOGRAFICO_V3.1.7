@@ -1,0 +1,3324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FertiCore - Análise Comercial</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-green: #7CB342;
+            --secondary-green: #8BC34A;
+            --dark-green: #689F38;
+            --light-green: #DCEDC8;
+            --accent-brown: #8D6E63;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --medium-gray: #E0E0E0;
+            --dark-gray: #424242;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        /* Main Header */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-bottom: 2px solid var(--primary-green);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-logo {
+            height: 45px;
+            width: auto;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--primary-green);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .hamburger-btn:hover {
+            background: var(--light-green);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 70px);
+            background: var(--white);
+            color: var(--dark-gray);
+            overflow-y: auto;
+            z-index: 1500;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--medium-gray);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: var(--white);
+            border-bottom: 2px solid var(--light-green);
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-image {
+            width: 140px;
+            height: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+            color: var(--dark-gray);
+        }
+
+        .sidebar-menu {
+            padding: 0;
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .sidebar-menu li {
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 18px 25px;
+            color: var(--dark-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: var(--light-green);
+            color: var(--dark-green);
+            border-left-color: var(--primary-green);
+            padding-left: 30px;
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            margin-top: 70px;
+            min-height: calc(100vh - 70px);
+            background-color: var(--light-gray);
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+
+        .content-header {
+            background: var(--white);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            color: var(--dark-green);
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--dark-gray);
+            font-size: 14px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background: var(--primary-green);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 20px;
+            border-bottom: none;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .revenda-selector-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .revenda-card {
+            border-left: 4px solid var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .revenda-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-green);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin-top: 5px;
+        }
+
+        .potential-score {
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
+            padding: 20px;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            color: white;
+        }
+
+        .potential-high { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
+        .potential-medium { background: linear-gradient(135deg, #FF9800, #FFB74D); }
+        .potential-low { background: linear-gradient(135deg, #F44336, #EF5350); }
+
+        .analysis-chart {
+            height: 300px !important;
+            width: 100% !important;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+        }
+
+        .table th {
+            background: var(--primary-green);
+            color: white;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table td {
+            font-size: 12px;
+            padding: 8px;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .clickable-row:hover {
+            background-color: #e3f2fd !important;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            color: white;
+            text-align: center;
+            font-size: 10px;
+            line-height: 20px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner i {
+            font-size: 48px;
+            color: var(--primary-green);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-primary {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-green);
+            border-color: var(--dark-green);
+        }
+
+        .btn-success {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+        }
+
+        .btn-success:hover {
+            background: var(--dark-green);
+            border-color: var(--dark-green);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+
+        .financial-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .financial-item {
+            text-align: center;
+        }
+
+        .financial-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .financial-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .revenue { color: #28a745; }
+        .expense { color: #dc3545; }
+        .balance { color: #007bff; }
+
+        .nav-tabs .nav-link {
+            color: var(--dark-gray);
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            padding: 12px 16px;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-green);
+            border-bottom-color: var(--primary-green);
+            background: transparent;
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--dark-green);
+            border-bottom-color: var(--light-green);
+        }
+
+        .data-source-tab {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .source-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+        }
+
+        .source-metric {
+            text-align: center;
+        }
+
+        .source-metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .source-metric-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #aaa;
+        }
+
+        /* Modal styles */
+        .modal-header {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--primary-green);
+        }
+
+        /* Mobile Footer */
+        .mobile-footer {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-top: 2px solid var(--primary-green);
+            z-index: 2500;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .mobile-footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            height: 100%;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .footer-section.footer-center {
+            flex: 1.2;
+        }
+
+        .footer-btn {
+            background: transparent;
+            color: var(--dark-gray);
+            border: none;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+            min-height: 50px;
+            justify-content: center;
+        }
+
+        .footer-btn:hover, 
+        .footer-btn:focus {
+            color: var(--primary-green);
+            background: rgba(124, 179, 66, 0.1);
+            text-decoration: none;
+        }
+
+        .footer-btn.footer-main {
+            background: var(--primary-green);
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
+        }
+
+        .footer-btn.footer-main:hover {
+            background: var(--dark-green);
+            transform: scale(1.05);
+            color: white;
+        }
+
+        .footer-btn i {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .footer-btn.footer-main i {
+            font-size: 20px;
+            margin-bottom: 0;
+        }
+
+        .footer-btn span {
+            font-size: 8px;
+            line-height: 1;
+            font-weight: 500;
+        }
+
+        .footer-btn.footer-main span {
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-bottom: 70px;
+                padding-bottom: 20px;
+            }
+
+            .content-header {
+                padding: 20px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .mobile-footer {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Header -->
+    <header class="main-header">
+        <button class="hamburger-btn" id="hamburger-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <img src="/static/images/ferticore-logo-full.png" alt="FertiCore" class="header-logo">
+        <div style="width: 50px;"></div> <!-- Spacer for centering -->
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="/static/images/ferticore-logo-full.png" alt="FertiCore" class="logo-image">
+                <div class="logo-subtitle">Sistema de Visualização Agrícola</div>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-map"></i>
+                    Mapa Principal
+                </a>
+            </li>
+            <li>
+                <a href="/analise-potencial" class="active">
+                    <i class="fas fa-chart-line"></i>
+                    Análise Comercial
+                </a>
+            </li>
+            <li>
+                <a href="/analise-territorial">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Análise Territorial
+                </a>
+            </li>
+            <li>
+                <a href="/revendas">
+                    <i class="fas fa-store"></i>
+                    Cadastro de Revendas
+                </a>
+            </li>
+            <li>
+                <a href="/vendedores">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastro de Vendedores
+
+                </a>
+            </li>
+            <li>
+                <a href="/">
+                    <i class="fas fa-download"></i>
+                    Exportações
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                    <i class="fas fa-cog"></i>
+                    Configurações
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="content-header">
+            <h1 class="page-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Análise Comercial
+            </h1>
+            <p class="page-subtitle">Avalie o potencial comercial e identifique oportunidades de negócio</p>
+        </div>
+
+        <!-- Content -->
+        <div class="container-fluid">
+            <!-- Alert Container -->
+            <div id="alert-container"></div>
+
+            <!-- Entity Selection -->
+            <div class="revenda-selector-card">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="entity-type" class="form-label">
+                                <i class="fas fa-filter me-2"></i>
+                                Tipo de Análise
+                            </label>
+                            <select id="entity-type" class="form-select">
+                                <option value="revendas">Revendas</option>
+                                <option value="vendedores">Vendedores</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label for="entity-selector" class="form-label">
+                                <i class="fas fa-store me-2"></i>
+                                <span id="entity-label">Selecione a Revenda para Análise</span>
+                            </label>
+                            <select id="entity-selector" class="form-select">
+                                <option value="">Selecione uma revenda...</option>
+                                <!-- Opções carregadas dinamicamente -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100" id="analyze-btn" onclick="analyzeSelectedEntity()" disabled>
+                            <i class="fas fa-chart-line me-2"></i>
+                            Analisar Potencial
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p class="mt-3">Carregando análise...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state">
+                <i class="fas fa-search-dollar"></i>
+                <h3>Nenhuma Análise Selecionada</h3>
+                <p>Selecione um tipo de entidade e a entidade para começar a análise de potencial</p>
+            </div>
+
+            <!-- Analysis Content -->
+            <div id="analysis-content" style="display: none;">
+                <!-- Analysis results will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Footer (only visible on mobile) -->
+    <footer class="mobile-footer">
+        <div class="mobile-footer-content">
+            <div class="footer-section">
+                <a href="/analise-territorial" class="footer-btn">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Análise Territorial</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/analise-potencial" class="footer-btn">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análise Comercial</span>
+                </a>
+            </div>
+            <div class="footer-section footer-center">
+                <a href="/" class="footer-btn footer-main">
+                    <i class="fas fa-map"></i>
+                    <span>Mapa</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/revendas" class="footer-btn">
+                    <i class="fas fa-store"></i>
+                    <span>Revendas</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/vendedores" class="footer-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Vendedores</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for Municipality Details -->
+    <div class="modal fade" id="municipalityDetailModal" tabindex="-1" aria-labelledby="municipalityDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="municipalityDetailModalLabel">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        Detalhes do Município
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="municipalityDetailContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Crop Details -->
+    <div class="modal fade" id="cropDetailModal" tabindex="-1" aria-labelledby="cropDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cropDetailModalLabel">
+                        <i class="fas fa-seedling me-2"></i>
+                        Detalhes da Cultura
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="cropDetailContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Potential Score Explanation -->
+    <div class="modal fade" id="potentialScoreModal" tabindex="-1" aria-labelledby="potentialScoreModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="potentialScoreModalLabel">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Explicação da Pontuação de Potencial
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="potentialScoreContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Financial Details -->
+    <div class="modal fade" id="financialDetailModal" tabindex="-1" aria-labelledby="financialDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="financialDetailModalLabel">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        Detalhes Financeiros por Município
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="financialDetailContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let revendasData = [];
+        let vendedoresData = []; // Add this line
+        let currentAnalysis = null;
+        let allCropsData = {};
+        let allReceitasData = {};
+        let allDespesasData = {};
+        let allFertilizersData = {};
+        let allAgrotoxicosData = {};
+        let allConsultoriaData = {};
+        let allCorretivosData = {};
+        let allEscolaridadeData = {};
+
+        // Variables to store current entity type and its ID
+        let currentEntityType = 'revendas';
+        let currentEntityId = null; // Updated from currentRevendaId
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRevendas();
+            loadVendedores(); // Load vendors on startup
+            loadAllDataSources(); // Load all data sources on startup
+            setupEventListeners();
+            setupSidebarToggle();
+        });
+
+        function setupSidebarToggle() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (hamburgerBtn && sidebar && mainContent) {
+                hamburgerBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('hidden');
+                    mainContent.classList.toggle('sidebar-hidden');
+                });
+            }
+        }
+
+        function setupEventListeners() {
+            const entityTypeSelector = document.getElementById('entity-type');
+            const entitySelector = document.getElementById('entity-selector');
+            const analyzeBtn = document.getElementById('analyze-btn');
+
+            entityTypeSelector.addEventListener('change', function() {
+                currentEntityType = this.value;
+                updateEntitySelector(); // Update label and populate selector based on new type
+                analyzeBtn.disabled = true; // Disable analyze button until a new entity is selected
+                document.getElementById('empty-state').style.display = 'block'; // Show empty state
+                document.getElementById('analysis-content').style.display = 'none'; // Hide analysis content
+            });
+
+            entitySelector.addEventListener('change', function() {
+                const selectedValue = this.value;
+                analyzeBtn.disabled = !selectedValue;
+                currentEntityId = selectedValue || null; // Store the selected entity ID
+
+                // Show empty state if nothing is selected
+                if (!selectedValue) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    document.getElementById('analysis-content').style.display = 'none';
+                }
+            });
+        }
+
+        async function loadRevendas() {
+            try {
+                const response = await fetch('/api/revendas');
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                revendasData = result.revendas;
+                if (currentEntityType === 'revendas') {
+                    populateEntitySelector();
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar revendas:', error);
+                showAlert('danger', 'Erro ao carregar revendas: ' + error.message);
+            }
+        }
+
+        async function loadVendedores() {
+            try {
+                const response = await fetch('/api/vendedores');
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                vendedoresData = result.vendedores;
+                if (currentEntityType === 'vendedores') {
+                    populateEntitySelector();
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar vendedores:', error);
+                showAlert('danger', 'Erro ao carregar vendedores: ' + error.message);
+            }
+        }
+
+        function updateEntitySelector() {
+            const entityLabel = document.getElementById('entity-label');
+            const entitySelector = document.getElementById('entity-selector');
+
+            if (currentEntityType === 'revendas') {
+                entityLabel.innerHTML = '<i class="fas fa-store me-2"></i>Selecione a Revenda para Análise';
+                populateEntitySelector();
+            } else {
+                entityLabel.innerHTML = '<i class="fas fa-user me-2"></i>Selecione o Vendedor para Análise';
+                populateEntitySelector();
+            }
+        }
+
+        function populateEntitySelector() {
+            const selector = document.getElementById('entity-selector');
+
+            if (currentEntityType === 'revendas') {
+                selector.innerHTML = '<option value="">Selecione uma revenda...</option>';
+                revendasData.forEach(revenda => {
+                    const option = document.createElement('option');
+                    option.value = revenda.id;
+                    option.textContent = `${revenda.nome} (${revenda.municipios_count} municípios)`;
+                    selector.appendChild(option);
+                });
+            } else {
+                selector.innerHTML = '<option value="">Selecione um vendedor...</option>';
+                vendedoresData.forEach(vendedor => {
+                    const option = document.createElement('option');
+                    option.value = vendedor.id;
+                    option.textContent = `${vendedor.nome} (${vendedor.municipios_count} municípios)`;
+                    selector.appendChild(option);
+                });
+            }
+        }
+
+        async function analyzeSelectedEntity() {
+            const selectedEntityId = document.getElementById('entity-selector').value;
+
+            if (!selectedEntityId) {
+                const entityName = currentEntityType === 'revendas' ? 'revenda' : 'vendedor';
+                showAlert('warning', `Por favor, selecione um${entityName === 'revenda' ? 'a' : ''} ${entityName} para analisar.`);
+                return;
+            }
+
+            const selectedEntity = currentEntityType === 'revendas' 
+                ? revendasData.find(r => r.id == selectedEntityId)
+                : vendedoresData.find(v => v.id == selectedEntityId);
+
+            if (!selectedEntity) {
+                const entityName = currentEntityType === 'revendas' ? 'Revenda' : 'Vendedor';
+                showAlert('danger', `${entityName} não encontrado(a).`);
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Ensure all data sources are loaded before analysis
+                await loadAllDataSources();
+
+                const endpoint = currentEntityType === 'revendas' 
+                    ? `/api/analise-potencial/${selectedEntityId}`
+                    : `/api/analise-potencial-vendedor/${selectedEntityId}`;
+
+                const analysisResponse = await fetch(endpoint);
+                const analysisResult = await analysisResponse.json();
+
+                if (!analysisResult.success) {
+                    throw new Error(analysisResult.error);
+                }
+
+                currentAnalysis = {
+                    entity: selectedEntity,
+                    entityType: currentEntityType,
+                    analysis: analysisResult.analysis
+                };
+
+                renderAnalysis();
+
+            } catch (error) {
+                console.error('Erro ao analisar:', error);
+                const entityName = currentEntityType === 'revendas' ? 'revenda' : 'vendedor';
+                showAlert('danger', `Erro ao analisar ${entityName}: ` + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadAllDataSources() {
+            try {
+                console.log('Loading all data sources...');
+                await Promise.all([
+                    loadAllCropsData(),
+                    loadFinancialData(),
+                    loadFertilizersData(),
+                    loadAgrotoxicosData(),
+                    loadConsultoriaData(),
+                    loadCorretivosData(),
+                    loadEscolaridadeData()
+                ]);
+                console.log('All data sources loaded successfully');
+            } catch (error) {
+                console.error('Erro ao carregar fontes de dados:', error);
+                showAlert('warning', 'Alguns dados podem não estar disponíveis');
+            }
+        }
+
+        async function loadAllCropsData() {
+            try {
+                console.log('Loading crops data...');
+                const cropsResponse = await fetch('/api/crops');
+                const cropsResult = await cropsResponse.json();
+
+                if (cropsResult.success) {
+                    console.log(`Loading data for ${cropsResult.crops.length} crops`);
+                    for (const crop of cropsResult.crops) {
+                        try {
+                            const cropDataResponse = await fetch(`/api/crop-data/${encodeURIComponent(crop)}`);
+                            const cropDataResult = await cropDataResponse.json();
+
+                            if (cropDataResult.success) {
+                                allCropsData[crop] = cropDataResult.data;
+                                console.log(`Loaded data for crop: ${crop}`);
+                            } else {
+                                console.warn(`Failed to load data for crop ${crop}:`, cropDataResult.error);
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados da cultura ${crop}:`, error);
+                        }
+                    }
+                    console.log(`Crops data loaded: ${Object.keys(allCropsData).length} crops`);
+                } else {
+                    console.error('Failed to get crops list:', cropsResult.error);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de culturas:', error);
+            }
+        }
+
+        async function loadFinancialData() {
+            try {
+                console.log('Loading financial data...');
+
+                // Receitas - Load all categories
+                const receitasResponse = await fetch('/api/receita/categories');
+                const receitasResult = await receitasResponse.json();
+
+                if (receitasResult.success && receitasResult.categories.length > 0) {
+                    console.log(`Loading ${receitasResult.categories.length} receita categories`);
+                    // Load Total category first, then others
+                    const totalCategory = receitasResult.categories.find(cat => cat === 'Total') || receitasResult.categories[0];
+                    const receitaDataResponse = await fetch(`/api/receita/${encodeURIComponent(totalCategory)}`);
+                    const receitaDataResult = await receitaDataResponse.json();
+
+                    if (receitaDataResult.success) {
+                        allReceitasData = receitaDataResult.data;
+                        console.log(`Loaded receita data with ${Object.keys(allReceitasData).length} municipalities`);
+                    }
+                }
+
+                // Despesas - Load all categories
+                const despesasResponse = await fetch('/api/despesa/categories');
+                const despesasResult = await despesasResponse.json();
+
+                if (despesasResult.success && despesasResult.categories.length > 0) {
+                    console.log(`Loading ${despesasResult.categories.length} despesa categories`);
+                    // Load Total category first, then others
+                    const totalCategory = despesasResult.categories.find(cat => cat === 'Total') || despesasResult.categories[0];
+                    const despesaDataResponse = await fetch(`/api/despesa/${encodeURIComponent(totalCategory)}`);
+                    const despesaDataResult = await despesaDataResponse.json();
+
+                    if (despesaDataResult.success) {
+                        allDespesasData = despesaDataResult.data;
+                        console.log(`Loaded despesa data with ${Object.keys(allDespesasData).length} municipalities`);
+                    }
+                }
+
+                console.log('Financial data loading completed');
+            } catch (error) {
+                console.error('Erro ao carregar dados financeiros:', error);
+            }
+        }
+
+        async function loadFertilizersData() {
+            try {
+                console.log('Loading fertilizers data...');
+                const response = await fetch('/api/fertilizer-categories');
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log(`Loading ${result.categories.length} fertilizer categories`);
+                    for (const category of result.categories) {
+                        try {
+                            const dataResponse = await fetch(`/api/fertilizer-data/${encodeURIComponent(category)}`);
+                            const dataResult = await dataResponse.json();
+
+                            if (dataResult.success) {
+                                allFertilizersData[category] = dataResult.data;
+                                console.log(`Loaded fertilizer data for: ${category}`);
+                            } else {
+                                console.warn(`Failed to load fertilizer data for ${category}:`, dataResult.error);
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados de fertilizantes ${category}:`, error);
+                        }
+                    }
+                    console.log(`Fertilizers data loaded: ${Object.keys(allFertilizersData).length} categories`);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de fertilizantes:', error);
+            }
+        }
+
+        async function loadAgrotoxicosData() {
+            try {
+                const response = await fetch('/api/agrotoxico/categories');
+                const result = await response.json();
+
+                if (result.success) {
+                    for (const category of result.categories) {
+                        try {
+                            const dataResponse = await fetch(`/api/agrotoxico/${encodeURIComponent(category)}`);
+                            const dataResult = await dataResponse.json();
+
+                            if (dataResult.success) {
+                                allAgrotoxicosData[category] = dataResult.data;
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados de agrotóxicos ${category}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de agrotóxicos:', error);
+            }
+        }
+
+        async function loadConsultoriaData() {
+            try {
+                const response = await fetch('/api/consultoria/categories');
+                const result = await response.json();
+
+                if (result.success) {
+                    for (const category of result.categories) {
+                        try {
+                            const dataResponse = await fetch(`/api/consultoria/${encodeURIComponent(category)}`);
+                            const dataResult = await dataResponse.json();
+
+                            if (dataResult.success) {
+                                allConsultoriaData[category] = dataResult.data;
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados de consultoria ${category}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de consultoria:', error);
+            }
+        }
+
+        async function loadCorretivosData() {
+            try {
+                const response = await fetch('/api/corretivos/categories');
+                const result = await response.json();
+
+                if (result.success) {
+                    for (const category of result.categories) {
+                        try {
+                            const dataResponse = await fetch(`/api/corretivos/${encodeURIComponent(category)}`);
+                            const dataResult = await dataResponse.json();
+
+                            if (dataResult.success) {
+                                allCorretivosData[category] = dataResult.data;
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados de corretivos ${category}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de corretivos:', error);
+            }
+        }
+
+        async function loadEscolaridadeData() {
+            try {
+                const response = await fetch('/api/escolaridade/categories');
+                const result = await response.json();
+
+                if (result.success) {
+                    for (const category of result.categories) {
+                        try {
+                            const dataResponse = await fetch(`/api/escolaridade/${encodeURIComponent(category)}`);
+                            const dataResult = await dataResponse.json();
+
+                            if (dataResult.success) {
+                                allEscolaridadeData[category] = dataResult.data;
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao carregar dados de escolaridade ${category}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de escolaridade:', error);
+            }
+        }
+
+        function renderAnalysis() {
+            if (!currentAnalysis) return;
+
+            const { entity, entityType, analysis } = currentAnalysis;
+            const container = document.getElementById('analysis-content');
+
+            // Determine if the entity is a revenda or vendedor and adjust data fetching accordingly
+            let entityMunicipalityCodes = [];
+            let entityName = '';
+            let entityDetails = {};
+
+            if (entityType === 'revendas') {
+                entityMunicipalityCodes = entity.municipios;
+                entityName = entity.nome;
+                entityDetails = {
+                    cnpj: entity.cnpj,
+                    municipiosCount: entity.municipios_count
+                };
+            } else { // entityType === 'vendedores'
+                entityMunicipalityCodes = entity.municipios; // Assuming vendedor also has municipalities
+                entityName = entity.nome;
+                entityDetails = {
+                    email: entity.email,
+                    telefone: entity.telefone,
+                    municipiosCount: entity.municipios_count
+                };
+            }
+
+            const potentialClass = getPotentialClass(analysis.potentialScore);
+            const potentialText = getPotentialText(analysis.potentialScore);
+
+            // Calculate data specific to the entity (filtered by the entity's municipalities)
+            const entityCropsRanking = calculateEntityCropsRanking(entity, entityMunicipalityCodes);
+            const entityFinancialData = calculateEntityFinancialData(entity, entityMunicipalityCodes);
+            const entityFertilizersData = calculateEntityFertilizersData(entity, entityMunicipalityCodes);
+            const entityAgrotoxicosData = calculateEntityAgrotoxicosData(entity, entityMunicipalityCodes);
+            const entityConsultoriaData = calculateEntityConsultoriaData(entity, entityMunicipalityCodes);
+            const entityCorretivosData = calculateEntityCorretivosData(entity, entityMunicipalityCodes);
+            const entityEscolaridadeData = calculateEntityEscolaridadeData(entity, entityMunicipalityCodes);
+
+            container.innerHTML = `
+                <div class="card ${entityType}-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="${entityType === 'revendas' ? 'fas fa-store' : 'fas fa-user'} me-2"></i>
+                            ${entityName}
+                        </h5>
+                        <small>
+                            ${entityType === 'revendas' 
+                                ? `CNPJ: ${entityDetails.cnpj} | Municípios: ${entityDetails.municipiosCount}`
+                                : `E-mail: ${entityDetails.email} | Telefone: ${entityDetails.telefone} | Municípios: ${entityDetails.municipiosCount}`
+                            }
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <!-- Summary -->
+                                <div class="financial-summary">
+                                    <div class="financial-item">
+                                        <div class="financial-value revenue">R$ ${formatNumber(entityFinancialData.totalReceita)}</div>
+                                        <div class="financial-label">Receita Total</div>
+                                    </div>
+                                    <div class="financial-item">
+                                        <div class="financial-value expense">R$ ${formatNumber(entityFinancialData.totalDespesa)}</div>
+                                        <div class="financial-label">Despesa Total</div>
+                                    </div>
+                                    <div class="financial-item">
+                                        <div class="financial-value balance">R$ ${formatNumber(entityFinancialData.saldo)}</div>
+                                        <div class="financial-label">Saldo</div>
+                                    </div>
+                                    <div class="financial-item">
+                                        <div class="financial-value">${formatNumber(entityCropsRanking.totalArea)} ha</div>
+                                        <div class="financial-label">Área Total</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabs for detailed analysis by data source -->
+                        <ul class="nav nav-tabs" id="data-source-tabs-${entity.id}" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="financial-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#financial-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-dollar-sign"></i> Receitas e Despesas
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="crops-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#crops-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-seedling"></i> Culturas
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="fertilizers-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#fertilizers-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-flask"></i> Fertilizantes
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="agrotoxicos-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#agrotoxicos-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-spray-can"></i> Agrotóxicos
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="consultoria-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#consultoria-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-user-tie"></i> Consultoria
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="corretivos-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#corretivos-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-vial"></i> Corretivos
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="escolaridade-tab-${entity.id}" data-bs-toggle="tab" 
+                                        data-bs-target="#escolaridade-${entity.id}" type="button" role="tab">
+                                    <i class="fas fa-graduation-cap"></i> Escolaridade
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="data-source-tabs-content-${entity.id}">
+                            <!-- Financial Tab -->
+                            <div class="tab-pane fade show active" id="financial-${entity.id}" role="tabpanel">
+                                ${createFinancialTabContent(entity.id, entityFinancialData)}
+                            </div>
+
+                            <!-- Crops Tab -->
+                            <div class="tab-pane fade" id="crops-${entity.id}" role="tabpanel">
+                                ${createCropsTabContent(entity.id, entityCropsRanking)}
+                            </div>
+
+                            <!-- Fertilizers Tab -->
+                            <div class="tab-pane fade" id="fertilizers-${entity.id}" role="tabpanel">
+                                ${createFertilizersTabContent(entity.id, entityFertilizersData, entityMunicipalityCodes.length)}
+                            </div>
+
+                            <!-- Agrotoxicos Tab -->
+                            <div class="tab-pane fade" id="agrotoxicos-${entity.id}" role="tabpanel">
+                                ${createAgrotoxicosTabContent(entity.id, entityAgrotoxicosData, entityMunicipalityCodes.length)}
+                            </div>
+
+                            <!-- Consultoria Tab -->
+                            <div class="tab-pane fade" id="consultoria-${entity.id}" role="tabpanel">
+                                ${createConsultoriaTabContent(entity.id, entityConsultoriaData, entityMunicipalityCodes.length)}
+                            </div>
+
+                            <!-- Corretivos Tab -->
+                            <div class="tab-pane fade" id="corretivos-${entity.id}" role="tabpanel">
+                                ${createCorretivosTabContent(entity.id, entityCorretivosData, entityMunicipalityCodes.length)}
+                            </div>
+
+                            <!-- Escolaridade Tab -->
+                            <div class="tab-pane fade" id="escolaridade-${entity.id}" role="tabpanel">
+                                ${createEscolaridadeTabContent(entity.id, entityEscolaridadeData, entityMunicipalityCodes.length)}
+                            </div>
+                        </div>
+
+                        <!-- Export Buttons -->
+                        <div class="d-flex justify-content-end align-items-center mb-3">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportCommercialAnalysis(${entity.id}, '${entityType}')">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    Exportar Análise (Excel)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create charts after the card is added to DOM
+            setTimeout(() => {
+                createFinancialCharts(entity.id, entityFinancialData);
+                createCropsCharts(entity.id, entityCropsRanking);
+                createFertilizersCharts(entity.id, entityFertilizersData);
+                createAgrotoxicosCharts(entity.id, entityAgrotoxicosData);
+                createConsultoriaCharts(entity.id, entityConsultoriaData);
+                createCorretivosCharts(entity.id, entityCorretivosData);
+                createEscolaridadeCharts(entity.id, entityEscolaridadeData);
+            }, 100);
+
+            showAnalysis();
+        }
+
+        function calculateEntityCropsRanking(entity, entityMunicipalityCodes) {
+            const ranking = [];
+            let totalAreaGeral = 0;
+
+            for (const [cropName, cropData] of Object.entries(allCropsData)) {
+                let totalArea = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (cropData[municipioStr] && cropData[municipioStr].harvested_area > 0) {
+                        totalArea += parseFloat(cropData[municipioStr].harvested_area);
+                        municipiosCount++;
+                    }
+                });
+
+                if (totalArea > 0) {
+                    ranking.push({
+                        name: cropName,
+                        area: totalArea,
+                        municipios: municipiosCount,
+                        avgArea: totalArea / municipiosCount
+                    });
+                    totalAreaGeral += totalArea;
+                }
+            }
+
+            return {
+                ranking: ranking.sort((a, b) => b.area - a.area),
+                totalArea: totalAreaGeral,
+                totalCrops: ranking.length,
+                totalMunicipios: entityMunicipalityCodes.length,
+                avgAreaPerMunicipio: entityMunicipalityCodes.length > 0 ? totalAreaGeral / entityMunicipalityCodes.length : 0
+            };
+        }
+
+        function calculateEntityFinancialData(entity, entityMunicipalityCodes) {
+            let totalReceita = 0;
+            let totalDespesa = 0;
+            const municipalitiesData = [];
+
+            entityMunicipalityCodes.forEach(code => {
+                const municipioStr = String(code);
+                let municipioReceita = 0;
+                let municipioDespesa = 0;
+                let municipioNome = `Município ${code}`;
+                let estado = 'XX';
+
+                // Calcular receita do município
+                if (allReceitasData[municipioStr] && allReceitasData[municipioStr].value) {
+                    municipioReceita = parseFloat(allReceitasData[municipioStr].value);
+                    municipioNome = allReceitasData[municipioStr].municipality_name || municipioNome;
+                    estado = allReceitasData[municipioStr].state_code || estado;
+                    totalReceita += municipioReceita;
+                }
+
+                // Calcular despesa do município
+                if (allDespesasData[municipioStr] && allDespesasData[municipioStr].value) {
+                    municipioDespesa = parseFloat(allDespesasData[municipioStr].value);
+                    if (municipioNome === `Município ${code}`) {
+                        municipioNome = allDespesasData[municipioStr].municipality_name || municipioNome;
+                        estado = allDespesasData[municipioStr].state_code || estado;
+                    }
+                    totalDespesa += municipioDespesa;
+                }
+
+                // Se ainda não encontrou o nome, tentar nos dados de culturas
+                if (municipioNome === `Município ${code}`) {
+                    for (const cropData of Object.values(allCropsData)) {
+                        if (cropData[municipioStr]) {
+                            municipioNome = cropData[municipioStr].municipality_name || municipioNome;
+                            estado = cropData[municipioStr].state_code || estado;
+                            break;
+                        }
+                    }
+                }
+
+                municipalitiesData.push({
+                    code: code,
+                    name: municipioNome,
+                    state: estado,
+                    receita: municipioReceita,
+                    despesa: municipioDespesa,
+                    saldo: municipioReceita - municipioDespesa
+                });
+            });
+
+            return {
+                totalReceita,
+                totalDespesa,
+                saldo: totalReceita - totalDespesa,
+                municipios: municipalitiesData.sort((a, b) => b.saldo - a.saldo)
+            };
+        }
+
+        function calculateEntityFertilizersData(entity, entityMunicipalityCodes) {
+            const ranking = [];
+
+            for (const [categoryName, categoryData] of Object.entries(allFertilizersData)) {
+                let totalValue = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (categoryData[municipioStr]) {
+                        const value = categoryData[municipioStr].value || categoryData[municipioStr].harvested_area || 0;
+                        if (value > 0) {
+                            totalValue += parseFloat(value);
+                            municipiosCount++;
+                        }
+                    }
+                });
+
+                if (totalValue > 0) {
+                    ranking.push({
+                        name: categoryName,
+                        value: totalValue,
+                        municipios: municipiosCount
+                    });
+                }
+            }
+
+            return ranking.sort((a, b) => b.value - a.value);
+        }
+
+        function calculateEntityAgrotoxicosData(entity, entityMunicipalityCodes) {
+            const ranking = [];
+
+            for (const [categoryName, categoryData] of Object.entries(allAgrotoxicosData)) {
+                let totalValue = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (categoryData[municipioStr] && categoryData[municipioStr].value > 0) {
+                        totalValue += categoryData[municipioStr].value;
+                        municipiosCount++;
+                    }
+                });
+
+                if (totalValue > 0) {
+                    ranking.push({
+                        name: categoryName,
+                        value: totalValue,
+                        municipios: municipiosCount
+                    });
+                }
+            }
+
+            return ranking.sort((a, b) => b.value - a.value);
+        }
+
+        function calculateEntityConsultoriaData(entity, entityMunicipalityCodes) {
+            const ranking = [];
+
+            for (const [categoryName, categoryData] of Object.entries(allConsultoriaData)) {
+                let totalValue = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (categoryData[municipioStr] && categoryData[municipioStr].value > 0) {
+                        totalValue += categoryData[municipioStr].value;
+                        municipiosCount++;
+                    }
+                });
+
+                if (totalValue > 0) {
+                    ranking.push({
+                        name: categoryName,
+                        value: totalValue,
+                        municipios: municipiosCount
+                    });
+                }
+            }
+
+            return ranking.sort((a, b) => b.value - a.value);
+        }
+
+        function calculateEntityCorretivosData(entity, entityMunicipalityCodes) {
+            const ranking = [];
+
+            for (const [categoryName, categoryData] of Object.entries(allCorretivosData)) {
+                let totalValue = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (categoryData[municipioStr] && categoryData[municipioStr].value > 0) {
+                        totalValue += categoryData[municipioStr].value;
+                        municipiosCount++;
+                    }
+                });
+
+                if (totalValue > 0) {
+                    ranking.push({
+                        name: categoryName,
+                        value: totalValue,
+                        municipios: municipiosCount
+                    });
+                }
+            }
+
+            return ranking.sort((a, b) => b.value - a.value);
+        }
+
+        function calculateEntityEscolaridadeData(entity, entityMunicipalityCodes) {
+            const ranking = [];
+
+            for (const [categoryName, categoryData] of Object.entries(allEscolaridadeData)) {
+                let totalValue = 0;
+                let municipiosCount = 0;
+
+                entityMunicipalityCodes.forEach(code => {
+                    const municipioStr = String(code);
+                    if (categoryData[municipioStr] && categoryData[municipioStr].value > 0) {
+                        totalValue += categoryData[municipioStr].value;
+                        municipiosCount++;
+                    }
+                });
+
+                if (totalValue > 0) {
+                    ranking.push({
+                        name: categoryName,
+                        value: totalValue,
+                        municipios: municipiosCount
+                    });
+                }
+            }
+
+            return ranking.sort((a, b) => b.value - a.value);
+        }
+
+        // Tab content creation functions
+        function createFinancialTabContent(entityId, financialData) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value revenue">R$ ${formatNumber(financialData.totalReceita)}</div>
+                            <div class="source-metric-label">Total Receitas</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value expense">R$ ${formatNumber(financialData.totalDespesa)}</div>
+                            <div class="source-metric-label">Total Despesas</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value balance">R$ ${formatNumber(financialData.saldo)}</div>
+                            <div class="source-metric-label">Saldo</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${financialData.municipios.length}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Receita vs Despesa</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-financial-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-table me-2"></i>Dados por Município</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Município</th>
+                                            <th>Receita</th>
+                                            <th>Despesa</th>
+                                            <th>Saldo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${financialData.municipios.map(municipio => `
+                                            <tr class="clickable-row" onclick="showMunicipalityFinancialDetail('${municipio.code}', '${municipio.name}', '${municipio.state}', ${municipio.receita}, ${municipio.despesa})">
+                                                <td>${municipio.name} (${municipio.state})</td>
+                                                <td class="text-success">R$ ${formatNumber(municipio.receita)}</td>
+                                                <td class="text-danger">R$ ${formatNumber(municipio.despesa)}</td>
+                                                <td class="${municipio.saldo >= 0 ? 'text-success' : 'text-danger'}">
+                                                    R$ ${formatNumber(municipio.saldo)}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCropsTabContent(entityId, cropsData) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(cropsData.totalArea)} ha</div>
+                            <div class="source-metric-label">Área Total</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${cropsData.totalCrops}</div>
+                            <div class="source-metric-label">Quantidade de Culturas</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${cropsData.totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(cropsData.avgAreaPerMunicipio)} ha</div>
+                            <div class="source-metric-label">Área Média</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-trophy me-2"></i>Ranking Completo de Culturas por Hectares</h6>
+                            <div class="table-container" style="max-height: 500px;">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Cultura</th>
+                                            <th>Hectares</th>
+                                            <th>Municípios</th>
+                                            <th>Participação</th>
+                                            <th>Gráfico</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crops-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Top 10 Culturas</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-crops-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFertilizersTabContent(entityId, fertilizersData, totalMunicipios) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(fertilizersData.reduce((sum, item) => sum + item.value, 0))}</div>
+                            <div class="source-metric-label">Total Estabelecimentos</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${fertilizersData.length}</div>
+                            <div class="source-metric-label">Categorias</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(fertilizersData.reduce((sum, item) => sum + item.value, 0) / Math.max(fertilizersData.length, 1))}</div>
+                            <div class="source-metric-label">Média por Categoria</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-list me-2"></i>Fertilizantes por Categoria</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Estabelecimentos</th>
+                                            <th>Participação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fertilizers-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Distribuição (%)</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-fertilizers-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAgrotoxicosTabContent(entityId, agrotoxicosData, totalMunicipios) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(agrotoxicosData.reduce((sum, item) => sum + item.value, 0))}</div>
+                            <div class="source-metric-label">Total Estabelecimentos</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${agrotoxicosData.length}</div>
+                            <div class="source-metric-label">Categorias</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(agrotoxicosData.reduce((sum, item) => sum + item.value, 0) / Math.max(agrotoxicosData.length, 1))}</div>
+                            <div class="source-metric-label">Média por Categoria</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-list me-2"></i>Agrotóxicos por Categoria</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Estabelecimentos</th>
+                                            <th>Participação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="agrotoxicos-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Distribuição (%)</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-agrotoxicos-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createConsultoriaTabContent(entityId, consultoriaData, totalMunicipios) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(consultoriaData.reduce((sum, item) => sum + item.value, 0))}</div>
+                            <div class="source-metric-label">Total Estabelecimentos</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${consultoriaData.length}</div>
+                            <div class="source-metric-label">Categorias</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(consultoriaData.reduce((sum, item) => sum + item.value, 0) / Math.max(consultoriaData.length, 1))}</div>
+                            <div class="source-metric-label">Média por Categoria</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-list me-2"></i>Consultoria por Categoria</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Estabelecimentos</th>
+                                            <th>Participação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="consultoria-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Distribuição (%)</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-consultoria-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCorretivosTabContent(entityId, corretivosData, totalMunicipios) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(corretivosData.reduce((sum, item) => sum + item.value, 0))}</div>
+                            <div class="source-metric-label">Total Estabelecimentos</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${corretivosData.length}</div>
+                            <div class="source-metric-label">Categorias</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(corretivosData.reduce((sum, item) => sum + item.value, 0) / Math.max(corretivosData.length, 1))}</div>
+                            <div class="source-metric-label">Média por Categoria</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-list me-2"></i>Corretivos por Categoria</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Estabelecimentos</th>
+                                            <th>Participação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="corretivos-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Distribuição (%)</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-corretivos-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createEscolaridadeTabContent(entityId, escolaridadeData, totalMunicipios) {
+            return `
+                <div class="data-source-tab mt-4">
+                    <div class="source-summary">
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(escolaridadeData.reduce((sum, item) => sum + item.value, 0))}</div>
+                            <div class="source-metric-label">Total Pessoas</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${escolaridadeData.length}</div>
+                            <div class="source-metric-label">Categorias</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${totalMunicipios}</div>
+                            <div class="source-metric-label">Municípios</div>
+                        </div>
+                        <div class="source-metric">
+                            <div class="source-metric-value">${formatNumber(escolaridadeData.reduce((sum, item) => sum + item.value, 0) / Math.max(escolaridadeData.length, 1))}</div>
+                            <div class="source-metric-label">Média por Categoria</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6><i class="fas fa-list me-2"></i>Escolaridade por Categoria</h6>
+                            <div class="table-container">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoria</th>
+                                            <th>Pessoas</th>
+                                            <th>Participação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="escolaridade-ranking-${entityId}">
+                                        <!-- Will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Distribuição (%)</h6>
+                            <div class="chart-container">
+                                <canvas id="chart-escolaridade-${entityId}" class="analysis-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to show municipality financial details in modal
+        function showMunicipalityFinancialDetail(code, name, state, receita, despesa) {
+            showFinancialDetailModal(code, name, state, receita, despesa);
+        }
+
+        // Function to show detailed financial modal with categories
+        async function showFinancialDetailModal(code, name, state, receita, despesa) {
+            const modalTitle = document.getElementById('financialDetailModalLabel');
+            const modalContent = document.getElementById('financialDetailContent');
+
+            modalTitle.innerHTML = `
+                <i class="fas fa-dollar-sign me-2"></i>
+                Detalhes Financeiros - ${name} (${state})
+            `;
+
+            const saldo = receita - despesa;
+            const saldoClass = saldo >= 0 ? 'text-success' : 'text-danger';
+
+            modalContent.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Carregando detalhes financeiros...</p>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('financialDetailModal'));
+            modal.show();
+
+            try {
+                // Carregar dados detalhados de receitas e despesas por categoria
+                const receitaDetails = await loadFinancialDetailsForMunicipality(code, 'receita');
+                const despesaDetails = await loadFinancialDetailsForMunicipality(code, 'despesa');
+
+                modalContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5><i class="fas fa-map-marker-alt me-2"></i>${name} (${state})</h5>
+                                    <p class="mb-0"><strong>Código IBGE:</strong> ${code}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-arrow-up me-2"></i>Receitas Detalhadas</h6>
+                                </div>
+                                <div class="card-body">
+                                    ${receitaDetails.length > 0 ? `
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Categoria</th>
+                                                        <th class="text-end">Valor</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${receitaDetails.map(item => `
+                                                        <tr>
+                                                            <td><small>${item.category}</small></td>
+                                                            <td class="text-end text-success"><strong>R$ ${formatNumber(item.value)}</strong></td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr class="table-success">
+                                                        <th>Total Receitas:</th>
+                                                        <th class="text-end">R$ ${formatNumber(receita)}</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    ` : `
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                            <p>Sem dados de receita disponíveis</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0"><i class="fas fa-arrow-down me-2"></i>Despesas Detalhadas</h6>
+                                </div>
+                                <div class="card-body">
+                                    ${despesaDetails.length > 0 ? `
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Categoria</th>
+                                                        <th class="text-end">Valor</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${despesaDetails.map(item => `
+                                                        <tr>
+                                                            <td><small>${item.category}</small></td>
+                                                            <td class="text-end text-danger"><strong>R$ ${formatNumber(item.value)}</strong></td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr class="table-danger">
+                                                        <th>Total Despesas:</th>
+                                                        <th class="text-end">R$ ${formatNumber(despesa)}</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    ` : `
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                            <p>Sem dados de despesa disponíveis</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header ${saldoClass.includes('success') ? 'bg-success' : 'bg-warning'} text-white">
+                                    <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>Resumo Financeiro</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-4">
+                                            <div class="p-3">
+                                                <h4 class="text-success">R$ ${formatNumber(receita)}</h4>
+                                                <p class="mb-0">Total Receitas</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="p-3">
+                                                <h4 class="text-danger">R$ ${formatNumber(despesa)}</h4>
+                                                <p class="mb-0">Total Despesas</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="p-3">
+                                                <h4 class="${saldoClass}">R$ ${formatNumber(saldo)}</h4>
+                                                <p class="mb-0">Saldo Final</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    ${receita > 0 || despesa > 0 ? `
+                                        <div class="mt-3">
+                                            <h6>Distribuição Percentual:</h6>
+                                            <div class="progress mb-2" style="height: 30px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: ${receita > 0 ? (receita / (receita + despesa)) * 100 : 0}%">
+                                                    Receita ${receita > 0 ? ((receita / (receita + despesa)) * 100).toFixed(1) : 0}%
+                                                </div>
+                                                <div class="progress-bar bg-danger" role="progressbar" 
+                                                     style="width: ${despesa > 0 ? (despesa / (receita + despesa)) * 100 : 0}%">
+                                                    Despesa ${despesa > 0 ? ((despesa / (receita + despesa)) * 100).toFixed(1) : 0}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${saldo >= 0 ? 
+                                        '<div class="alert alert-success mt-3 mb-0"><i class="fas fa-check-circle me-2"></i>Município com saldo positivo - situação financeira favorável</div>' :
+                                        '<div class="alert alert-warning mt-3 mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Município com saldo negativo - requer atenção especial</div>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Erro ao carregar detalhes financeiros:', error);
+                modalContent.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Erro ao carregar detalhes financeiros do município</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Function to load financial details for a municipality
+        async function loadFinancialDetailsForMunicipality(municipalityCode, type) {
+            const details = [];
+            // const dataSource = type === 'receita' ? allReceitasData : allDespesasData;
+
+            try {
+                if (type === 'receita') {
+                    const response = await fetch('/api/receita/categories');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        for (const category of result.categories) {
+                            try {
+                                const categoryResponse = await fetch(`/api/receita/${encodeURIComponent(category)}`);
+                                const categoryResult = await categoryResponse.json();
+
+                                if (categoryResult.success && categoryResult.data[municipalityCode]) {
+                                    const value = categoryResult.data[municipalityCode].value || 0;
+                                    if (value > 0) {
+                                        details.push({
+                                            category: category,
+                                            value: value
+                                        });
+                                    }
+                                }
+                            } catch (error) {
+                                console.warn(`Erro ao carregar categoria ${category}:`, error);
+                            }
+                        }
+                    }
+                } else if (type === 'despesa') {
+                    const response = await fetch('/api/despesa/categories');
+                    const result = await response.json();
+
+                    if (result.success) {
+                        for (const category of result.categories) {
+                            try {
+                                const categoryResponse = await fetch(`/api/despesa/${encodeURIComponent(category)}`);
+                                const categoryResult = await categoryResponse.json();
+
+                                if (categoryResult.success && categoryResult.data[municipalityCode]) {
+                                    const value = categoryResult.data[municipalityCode].value || 0;
+                                    if (value > 0) {
+                                        details.push({
+                                            category: category,
+                                            value: value
+                                        });
+                                    }
+                                }
+                            } catch (error) {
+                                console.warn(`Erro ao carregar categoria ${category}:`, error);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Erro ao carregar categorias de ${type}:`, error);
+            }
+
+            return details.sort((a, b) => b.value - a.value);
+        }
+
+        // Function to show crop details in modal
+        async function showCropDetail(cropName, totalArea, municipiosCount, entityId) {
+            const modalTitle = document.getElementById('cropDetailModalLabel');
+            const modalContent = document.getElementById('cropDetailContent');
+
+            modalTitle.innerHTML = `
+                <i class="fas fa-seedling me-2"></i>
+                ${cropName} - Detalhes por Município
+            `;
+
+            modalContent.innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Carregando detalhes da cultura...</p>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('cropDetailModal'));
+            modal.show();
+
+            try {
+                // Obter dados detalhados da cultura para os municípios da entidade
+                const entity = currentAnalysis.entity;
+                const entityMunicipalityCodes = currentAnalysis.entityType === 'revendas' ? entity.municipios : entity.municipios;
+                const municipalitiesData = [];
+
+                if (allCropsData[cropName]) {
+                    entityMunicipalityCodes.forEach(code => {
+                        const municipioStr = String(code);
+                        if (allCropsData[cropName][municipioStr]) {
+                            const data = allCropsData[cropName][municipioStr];
+                            if (data.harvested_area > 0) {
+                                municipalitiesData.push({
+                                    code: code,
+                                    name: data.municipality_name,
+                                    state: data.state_code,
+                                    area: data.harvested_area
+                                });
+                            }
+                        }
+                    });
+                }
+
+                municipalitiesData.sort((a, b) => b.area - a.area);
+
+                modalContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5><i class="fas fa-seedling me-2"></i>${cropName}</h5>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <h4 class="text-primary">${formatNumber(totalArea)} ha</h4>
+                                            <p class="mb-0">Área Total</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4 class="text-success">${municipiosCount}</h4>
+                                            <p class="mb-0">Municípios Produtores</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4 class="text-info">${formatNumber(totalArea / municipiosCount)} ha</h4>
+                                            <p class="mb-0">Área Média</p>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h4 class="text-warning">${municipalitiesData.length > 0 ? formatNumber(municipalitiesData[0].area) : 0} ha</h4>
+                                            <p class="mb-0">Maior Produtor</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>Produção por Município (Ranking)</h6>
+                                </div>
+                                <div class="card-body">
+                                    ${municipalitiesData.length > 0 ? `
+                                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                            <table class="table table-striped table-sm">
+                                                <thead class="sticky-top">
+                                                    <tr>
+                                                        <th>Ranking</th>
+                                                        <th>Município</th>
+                                                        <th>Estado</th>
+                                                        <th class="text-end">Área (ha)</th>
+                                                        <th class="text-end">% do Total</th>
+                                                        <th>Participação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${municipalitiesData.map((municipio, index) => {
+                                                        const participation = ((municipio.area / totalArea) * 100).toFixed(2);
+                                                        return `
+                                                            <tr>
+                                                                <td><span class="rank-badge">${index + 1}</span></td>
+                                                                <td><strong>${municipio.name}</strong></td>
+                                                                <td><span class="badge bg-secondary">${municipio.state}</span></td>
+                                                                <td class="text-end"><strong>${formatNumber(municipio.area)}</strong></td>
+                                                                <td class="text-end">${participation}%</td>
+                                                                <td>
+                                                                    <div class="progress-bar-container">
+                                                                        <div class="progress-bar" style="width: ${Math.min((municipio.area / municipalitiesData[0].area) * 100, 100)}%"></div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        `;
+                                                    }).join('')}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr class="table-success">
+                                                        <th colspan="3">TOTAL GERAL:</th>
+                                                        <th class="text-end">${formatNumber(totalArea)} ha</th>
+                                                        <th class="text-end">100%</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    ` : `
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                            <p>Nenhum município da entidade produz esta cultura</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Erro ao carregar detalhes da cultura:', error);
+                modalContent.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p>Erro ao carregar detalhes da cultura</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Chart creation functions
+        function createFinancialCharts(entityId, financialData) {
+            const canvas = document.getElementById(`chart-financial-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            const totalReceita = financialData.totalReceita || 0;
+            const totalDespesa = financialData.totalDespesa || 0;
+
+            if (totalReceita === 0 && totalDespesa === 0) {
+                const container = canvas.parentElement;
+                container.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Dados financeiros não disponíveis para esta entidade</p>
+                    </div>
+                `;
+                return;
+            }
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Receita Total', 'Despesa Total'],
+                    datasets: [{
+                        data: [totalReceita, totalDespesa],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    cutout: '50%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 12 },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = totalReceita + totalDespesa;
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': R$ ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCropsCharts(entityId, cropsData) {
+            const canvas = document.getElementById(`chart-crops-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+            const topCrops = cropsData.ranking.slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCrops.map(crop => crop.name || 'N/A'),
+                    datasets: [{
+                        label: 'Hectares',
+                        data: topCrops.map(crop => crop.area || 0),
+                        backgroundColor: '#7CB342'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1.33,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`crops-ranking-${entityId}`);
+            if (tbody) {
+                const totalArea = cropsData.totalArea;
+                tbody.innerHTML = cropsData.ranking.map((crop, index) => {
+                    const participation = ((crop.area / totalArea) * 100).toFixed(1);
+                    return `
+                        <tr class="clickable-row" onclick="showCropDetail('${crop.name}', ${crop.area}, ${crop.municipios}, ${entityId})" style="cursor: pointer;">
+                            <td><span class="rank-badge">${index + 1}</span></td>
+                            <td><strong>${crop.name}</strong></td>
+                            <td>${formatNumber(crop.area)} ha</td>
+                            <td>${crop.municipios}</td>
+                            <td>${participation}%</td>
+                            <td>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: ${Math.min((crop.area / cropsData.ranking[0].area) * 100, 100)}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function createFertilizersCharts(entityId, fertilizersData) {
+            const canvas = document.getElementById(`chart-fertilizers-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: fertilizersData.map(item => item.name),
+                    datasets: [{
+                        data: fertilizersData.map(item => item.value),
+                        backgroundColor: [
+                            '#7CB342', '#8BC34A', '#689F38', '#DCEDC8',
+                            '#FF9800', '#F44336', '#9C27B0', '#2196F3'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 10 },
+                                maxWidth: 150
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`fertilizers-ranking-${entityId}`);
+            if (tbody) {
+                const totalValue = fertilizersData.reduce((sum, item) => sum + item.value, 0);
+                tbody.innerHTML = fertilizersData.map(item => {
+                    const participation = ((item.value / totalValue) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${formatNumber(item.value)}</td>
+                            <td>${participation}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function createAgrotoxicosCharts(entityId, agrotoxicosData) {
+            const canvas = document.getElementById(`chart-agrotoxicos-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: agrotoxicosData.map(item => item.name),
+                    datasets: [{
+                        data: agrotoxicosData.map(item => item.value),
+                        backgroundColor: [
+                            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+                            '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 10 },
+                                maxWidth: 150
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`agrotoxicos-ranking-${entityId}`);
+            if (tbody) {
+                const totalValue = agrotoxicosData.reduce((sum, item) => sum + item.value, 0);
+                tbody.innerHTML = agrotoxicosData.map(item => {
+                    const participation = ((item.value / totalValue) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${formatNumber(item.value)}</td>
+                            <td>${participation}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function createConsultoriaCharts(entityId, consultoriaData) {
+            const canvas = document.getElementById(`chart-consultoria-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: consultoriaData.map(item => item.name),
+                    datasets: [{
+                        data: consultoriaData.map(item => item.value),
+                        backgroundColor: [
+                            '#3498DB', '#E74C3C', '#F39C12', '#2ECC71',
+                            '#9B59B6', '#1ABC9C', '#E67E22', '#34495E'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 10 },
+                                maxWidth: 150
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`consultoria-ranking-${entityId}`);
+            if (tbody) {
+                const totalValue = consultoriaData.reduce((sum, item) => sum + item.value, 0);
+                tbody.innerHTML = consultoriaData.map(item => {
+                    const participation = ((item.value / totalValue) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${formatNumber(item.value)}</td>
+                            <td>${participation}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function createCorretivosCharts(entityId, corretivosData) {
+            const canvas = document.getElementById(`chart-corretivos-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: corretivosData.map(item => item.name),
+                    datasets: [{
+                        data: corretivosData.map(item => item.value),
+                        backgroundColor: [
+                            '#A0522D', '#D2691E', '#CD853F', '#DEB887',
+                            '#F4A460', '#D2B48C', '#BC8F8F', '#F5DEB3'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 10 },
+                                maxWidth: 150
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`corretivos-ranking-${entityId}`);
+            if (tbody) {
+                const totalValue = corretivosData.reduce((sum, item) => sum + item.value, 0);
+                tbody.innerHTML = corretivosData.map(item => {
+                    const participation = ((item.value / totalValue) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${formatNumber(item.value)}</td>
+                            <td>${participation}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function createEscolaridadeCharts(entityId, escolaridadeData) {
+            const canvas = document.getElementById(`chart-escolaridade-${entityId}`);
+            if (!canvas) return;
+
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = '100%';
+            canvas.style.height = '300px';
+
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: escolaridadeData.map(item => item.name),
+                    datasets: [{
+                        data: escolaridadeData.map(item => item.value),
+                        backgroundColor: [
+                            '#6C5CE7', '#A29BFE', '#74B9FF', '#0984E3',
+                            '#00B894', '#00CEC9', '#FDCB6E', '#E17055'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                font: { size: 10 },
+                                maxWidth: 150
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatNumber(value) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const tbody = document.getElementById(`escolaridade-ranking-${entityId}`);
+            if (tbody) {
+                const totalValue = escolaridadeData.reduce((sum, item) => sum + item.value, 0);
+                tbody.innerHTML = escolaridadeData.map(item => {
+                    const participation = ((item.value / totalValue) * 100).toFixed(1);
+                    return `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${formatNumber(item.value)}</td>
+                            <td>${participation}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Helper functions
+        function showLoading() {
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('analysis-content').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-state').style.display = 'none';
+        }
+
+        function showAnalysis() {
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('analysis-content').style.display = 'block';
+        }
+
+        function getPotentialClass(score) {
+            if (score >= 70) return 'potential-high';
+            if (score >= 40) return 'potential-medium';
+            return 'potential-low';
+        }
+
+        function getPotentialText(score) {
+            if (score >= 70) return 'Alto Potencial';
+            if (score >= 40) return 'Médio Potencial';
+            return 'Baixo Potencial';
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return 'N/A';
+
+            const numericValue = parseFloat(num);
+
+            if (isNaN(numericValue)) return 'N/A';
+
+            if (numericValue >= 1000000) {
+                return (numericValue / 1000000).toFixed(1) + 'M';
+            }
+            if (numericValue >= 1000) {
+                return (numericValue / 1000).toFixed(1) + 'K';
+            }
+            return numericValue.toLocaleString('pt-BR');
+        }
+
+        // Updated function to handle both revenda and vendedor exports
+        function exportCommercialAnalysis(entityId, entityType) {
+            console.log(`Exporting commercial analysis for ${entityType}:`, entityId);
+
+            // Show loading indicator or toast
+            const loadingToast = showToast(`Generating commercial analysis in Excel for ${entityType}...`, 'info', 10000);
+
+            // Determine the correct endpoint
+            let endpoint;
+            if (entityType === 'revendas' || entityType === 'revenda') {
+                endpoint = `/api/analise-comercial/excel/${entityId}`;
+            } else if (entityType === 'vendedores' || entityType === 'vendedor') {
+                endpoint = `/api/analise-comercial-vendedor/excel/${entityId}`;
+            } else {
+                showToast('Invalid entity type', 'error');
+                return;
+            }
+
+            try {
+                // Create download link
+                const link = document.createElement('a');
+                link.href = endpoint;
+                link.download = `analise_comercial_${entityId}.xlsx`;
+                link.style.display = 'none';
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Hide loading indicator after a short delay
+                setTimeout(() => {
+                    if (loadingToast && loadingToast.hide) {
+                        loadingToast.hide();
+                    }
+                    showToast('Commercial analysis exported successfully!', 'success');
+                }, 1000);
+
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Export failed: ' + error.message, 'error');
+                if (loadingToast && loadingToast.hide) {
+                    loadingToast.hide();
+                }
+            }
+        }
+
+        // Dummy showToast function for demonstration purposes
+        function showToast(message, type, duration) {
+            console.log(`[Toast ${type.toUpperCase()}]: ${message}`);
+            // In a real application, this would display a toast notification
+            // For now, we'll just return an object that simulates a hide method
+            return {
+                hide: () => console.log('[Toast Hidden]')
+            };
+        }
+
+        function showPotentialScoreExplanation(score, classification) {
+            const modalTitle = document.getElementById('potentialScoreModalLabel');
+            const modalContent = document.getElementById('potentialScoreContent');
+
+            modalTitle.innerHTML = `
+                <i class="fas fa-chart-line me-2"></i>
+                Pontuação de Potencial: ${score} pontos
+            `;
+
+            let scoreColor, scoreIcon, interpretation, recommendation;
+
+            if (score >= 70) {
+                scoreColor = '#4CAF50'; // Verde
+                scoreIcon = 'fas fa-arrow-up';
+                interpretation = 'Excelente potencial de mercado';
+                recommendation = 'Esta entidade apresenta um mercado muito promissor com alta atividade agrícola, boa movimentação financeira e diversificação de culturas. Recomenda-se investimento prioritário nesta região.';
+            } else if (score >= 40) {
+                scoreColor = '#FF9800'; // Laranja
+                scoreIcon = 'fas fa-arrow-right';
+                interpretation = 'Potencial moderado de mercado';
+                recommendation = 'Esta entidade possui um mercado com potencial médio. Há oportunidades de crescimento, mas pode requerer estratégias específicas para maximizar resultados.';
+            } else {
+                scoreColor = '#F44336'; // Vermelho
+                scoreIcon = 'fas fa-arrow-down';
+                interpretation = 'Baixo potencial de mercado';
+                recommendation = 'Esta entidade apresenta limitações no mercado atual. Recomenda-se análise mais detalhada para identificar oportunidades específicas ou considerar estratégias alternativas.';
+            }
+
+            const calculationMatrix = currentAnalysis?.analysis?.calculationMatrix || {};
+            let matrixDetailsHTML = '';
+
+            if (calculationMatrix && calculationMatrix.summary) {
+                const matrix = calculationMatrix;
+                matrixDetailsHTML = `
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-calculator me-2"></i>
+                                        Matriz Detalhada de Cálculo
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <h6 class="text-success"><i class="fas fa-seedling me-2"></i>Diversidade Agrícola</h6>
+                                            <div class="progress mb-2" style="height: 20px;">
+                                                <div class="progress-bar bg-success" style="width: ${(matrix.diversity?.score / 30) * 100}%">
+                                                    ${matrix.diversity?.score?.toFixed(1) || 0} / 30 pts
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${matrix.diversity?.description || 'N/A'}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-warning"><i class="fas fa-dollar-sign me-2"></i>Performance Financeira</h6>
+                                            <div class="progress mb-2" style="height: 20px;">
+                                                <div class="progress-bar bg-warning" style="width: ${(matrix.financial?.score / 25) * 100}%">
+                                                    ${matrix.financial?.score?.toFixed(1) || 0} / 25 pts
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${matrix.financial?.description || 'N/A'}</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary"><i class="fas fa-map-marked-alt me-2"></i>Abrangência Territorial</h6>
+                                            <div class="progress mb-2" style="height: 20px;">
+                                                <div class="progress-bar bg-primary" style="width: ${(matrix.territorial?.score / 20) * 100}%">
+                                                    ${matrix.territorial?.score?.toFixed(1) || 0} / 20 pts
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${matrix.territorial?.description || 'N/A'}</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-info"><i class="fas fa-chart-bar me-2"></i>Atividade de Mercado</h6>
+                                            <div class="progress mb-2" style="height: 20px;">
+                                                <div class="progress-bar bg-info" style="width: ${(matrix.market_activity?.score / 25) * 100}%">
+                                                    ${matrix.market_activity?.score?.toFixed(1) || 0} / 25 pts
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">${matrix.market_activity?.description || 'N/A'}</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th>Componente</th>
+                                                            <th>Peso</th>
+                                                            <th>Pontuação</th>
+                                                            <th>Máximo</th>
+                                                            <th>% Alcançado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Diversidade Agrícola</td>
+                                                            <td>30%</td>
+                                                            <td><strong>${matrix.diversity?.score?.toFixed(1) || 0}</strong></td>
+                                                            <td>30</td>
+                                                            <td>${matrix.diversity?.score ? ((matrix.diversity.score / 30) * 100).toFixed(1) : 0}%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Performance Financeira</td>
+                                                            <td>25%</td>
+                                                            <td><strong>${matrix.financial?.score?.toFixed(1) || 0}</strong></td>
+                                                            <td>25</td>
+                                                            <td>${matrix.financial?.score ? ((matrix.financial.score / 25) * 100).toFixed(1) : 0}%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Abrangência Territorial</td>
+                                                            <td>20%</td>
+                                                            <td><strong>${matrix.territorial?.score?.toFixed(1) || 0}</strong></td>
+                                                            <td>20</td>
+                                                            <td>${matrix.territorial?.score ? ((matrix.territorial.score / 20) * 100).toFixed(1) : 0}%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Atividade de Mercado</td>
+                                                            <td>25%</td>
+                                                            <td><strong>${matrix.market_activity?.score?.toFixed(1) || 0}</strong></td>
+                                                            <td>25</td>
+                                                            <td>${matrix.market_activity?.score ? ((matrix.market_activity.score / 25) * 100).toFixed(1) : 0}%</td>
+                                                        </tr>
+                                                        <tr class="table-warning">
+                                                            <td><strong>SUBTOTAL</strong></td>
+                                                            <td><strong>100%</strong></td>
+                                                            <td><strong>${matrix.summary?.base_score?.toFixed(1) || 0}</strong></td>
+                                                            <td><strong>100</strong></td>
+                                                            <td><strong>${matrix.summary?.base_score ? (matrix.summary.base_score).toFixed(1) : 0}%</strong></td>
+                                                        </tr>
+                                                        <tr class="table-success">
+                                                            <td><strong>Bônus Produtividade</strong></td>
+                                                            <td>Bônus</td>
+                                                            <td><strong>+${matrix.productivity_bonus?.bonus_points?.toFixed(1) || 0}</strong></td>
+                                                            <td>5</td>
+                                                            <td>${matrix.productivity_bonus?.bonus_points ? ((matrix.productivity_bonus.bonus_points / 5) * 100).toFixed(1) : 0}%</td>
+                                                        </tr>
+                                                        <tr class="table-info">
+                                                            <td><strong>PONTUAÇÃO FINAL</strong></td>
+                                                            <td><strong>-</strong></td>
+                                                            <td><strong>${matrix.summary?.final_score?.toFixed(1) || 0}</strong></td>
+                                                            <td><strong>100</strong></td>
+                                                            <td><strong>${matrix.summary?.final_score ? (matrix.summary.final_score).toFixed(1) : 0}%</strong></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            ${matrix.productivity_bonus?.description ? 
+                                                `<div class="alert alert-info mt-2 mb-0">
+                                                    <small><i class="fas fa-info-circle me-2"></i>${matrix.productivity_bonus.description}</small>
+                                                </div>` : ''
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modalContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <div class="text-center">
+                            <div class="potential-score-large" style="
+                                width: 150px; 
+                                height: 150px; 
+                                border-radius: 50%; 
+                                background: linear-gradient(135deg, ${scoreColor}, ${scoreColor}dd);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 48px;
+                                font-weight: 800;
+                                color: white;
+                                margin: 0 auto 20px;
+                                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                            ">
+                                ${score}
+                            </div>
+                            <h4 style="color: ${scoreColor};">
+                                <i class="${scoreIcon} me-2"></i>
+                                ${classification}
+                            </h4>
+                            <p class="text-muted">${interpretation}</p>
+                        </div>
+                    </div>
+                </div>
+
+                ${matrixDetailsHTML}
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Recomendação Estratégica:</h6>
+                            <p class="mb-0">${recommendation}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Observações Importantes
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="small mb-0">
+                                    <li>A pontuação é calculada com base nos dados disponíveis mais recentes</li>
+                                    <li>Cada componente tem um peso específico no cálculo final</li>
+                                    <li>O bônus de produtividade pode adicionar até 5 pontos extras</li>
+                                    <li>Fatores externos como clima e políticas públicas podem influenciar o potencial real</li>
+                                    <li>Recomenda-se análise periódica para acompanhar mudanças no mercado</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('potentialScoreModal'));
+            modal.show();
+        }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertId = 'alert-' + Date.now();
+
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert" id="${alertId}">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+
+            setTimeout(() => {
+                const alertElement = document.getElementById(alertId);
+                if (alertElement) {
+                    const alert = bootstrap.Alert.getOrCreateInstance(alertElement);
+                    alert.close();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

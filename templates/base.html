@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FertiCore - Análise de Dados Agrícolas IBGE{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/ferticore-logo-full.png') }}" alt="FertiCore" class="logo-image">
+                    <div class="text-center" style="font-size: 12px; color: #689F38; font-weight: 500;">
+                        Análise de Dados Agrícolas
+                    </div>
+                </div>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="active">
+                    <a href="/">
+                        <i class="fas fa-map"></i>
+                        Mapa Principal
+                    </a>
+                </li>
+                <li>
+                    <a href="/analise-potencial">
+                        <i class="fas fa-chart-line"></i>
+                        Análise Comercial
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Análise Territorial
+                    </a>
+                </li>
+                <li>
+                    <a href="/revendas">
+                        <i class="fas fa-store"></i>
+                        Cadastro de Revendas
+                    </a>
+                </li>
+                <li>
+                <a href="/vendedores">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastro de Vendedores
+                    
+                </a>
+            </li>
+                <li>
+                    <a href="/">
+                        <i class="fas fa-download"></i>
+                        Exportações
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-cog"></i>
+                        Configurações
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+
+                    <div class="col-auto d-flex align-items-center">
+                        {% if user %}
+                        <div class="dropdown me-3">
+                            <button class="btn btn-link text-white dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i>
+                                {{ user.username }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><h6 class="dropdown-header">{{ user.full_name }}</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Perfil</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                        <button class="btn btn-link text-white d-md-none" type="button" id="sidebarCollapse">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+
+                    <div class="navbar-nav ms-auto">
+                        <span class="navbar-text">
+                            <i class="fas fa-calendar-alt"></i>
+                            Dados IBGE 2023
+                        </span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer mt-auto py-3">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <span class="text-muted">
+                                © 2025 FertiCore. Sistema de Análise de Dados Agrícolas IBGE.
+                            </span>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="text-muted">
+                                Dados: Instituto Brasileiro de Geografia e Estatística (IBGE)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+
+    <script>
+        // Sidebar toggle
+        document.getElementById('sidebarCollapse').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

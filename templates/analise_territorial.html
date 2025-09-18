@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FertiCore - Análise Territorial</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-green: #7CB342;
+            --secondary-green: #8BC34A;
+            --dark-green: #689F38;
+            --light-green: #DCEDC8;
+            --accent-brown: #8D6E63;
+            --white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --medium-gray: #E0E0E0;
+            --dark-gray: #424242;
+            --dashboard-bg: #F8F9FA;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dashboard-bg);
+            color: var(--dark-gray);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--white);
+            color: var(--dark-gray);
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--medium-gray);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: var(--white);
+            border-bottom: 2px solid var(--light-green);
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-image {
+            width: 140px;
+            height: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+            color: var(--dark-gray);
+        }
+
+        .sidebar-menu {
+            padding: 0;
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .sidebar-menu li {
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 18px 25px;
+            color: var(--dark-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: var(--light-green);
+            color: var(--dark-green);
+            border-left-color: var(--primary-green);
+            padding-left: 30px;
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 0;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+            background: var(--dashboard-bg);
+        }
+
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+
+        .content-header {
+            background: var(--white);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--medium-gray);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary-green);
+            font-size: 18px;
+        }
+
+        .menu-toggle:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+
+        .analysis-container {
+            padding: 30px;
+        }
+
+        .territory-selector {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 30px;
+        }
+
+        .selector-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .territory-type-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .territory-type-btn {
+            padding: 12px 25px;
+            border: 2px solid var(--light-green);
+            background: var(--white);
+            color: var(--dark-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .territory-type-btn.active {
+            background: var(--primary-green);
+            color: var(--white);
+            border-color: var(--primary-green);
+        }
+
+        .territory-type-btn:hover {
+            background: var(--light-green);
+            border-color: var(--primary-green);
+        }
+
+        .territory-selection {
+            display: none;
+        }
+
+        .territory-selection.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: var(--dark-gray);
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 600;
+        }
+
+        .form-select {
+            background: var(--white);
+            border: 2px solid var(--light-green);
+            color: var(--dark-gray);
+            font-size: 16px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-select:focus {
+            background: var(--white);
+            border-color: var(--secondary-green);
+            box-shadow: 0 0 0 0.2rem rgba(124, 179, 66, 0.25);
+            outline: none;
+        }
+
+        .btn-analyze {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: var(--white);
+            padding: 15px 35px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-analyze:hover {
+            background: var(--dark-green);
+            border-color: var(--dark-green);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 179, 66, 0.3);
+        }
+
+        .btn-analyze:disabled {
+            background: var(--medium-gray);
+            border-color: var(--medium-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .analysis-results {
+            display: none;
+        }
+
+        .analysis-results.show {
+            display: block;
+        }
+
+        .summary-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary-green);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .summary-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .summary-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card-icon {
+            font-size: 24px;
+            color: var(--primary-green);
+        }
+
+        .summary-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 8px;
+        }
+
+        .summary-card-subtitle {
+            font-size: 12px;
+            color: var(--dark-gray);
+            opacity: 0.8;
+        }
+
+        .data-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--medium-gray);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            background: var(--light-green);
+            color: var(--dark-green);
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 2px solid var(--primary-green);
+        }
+
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--light-green);
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: rgba(124, 179, 66, 0.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--dark-gray);
+        }
+
+        .loading i {
+            font-size: 48px;
+            animation: spin 2s linear infinite;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Footer */
+        .mobile-footer {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-top: 2px solid var(--primary-green);
+            z-index: 2500;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .mobile-footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            height: 100%;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .footer-section.footer-center {
+            flex: 1.2;
+        }
+
+        .footer-btn {
+            background: transparent;
+            color: var(--dark-gray);
+            border: none;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+            min-height: 50px;
+            justify-content: center;
+        }
+
+        .footer-btn:hover,
+        .footer-btn:focus {
+            color: var(--primary-green);
+            background: rgba(124, 179, 66, 0.1);
+            text-decoration: none;
+        }
+
+        .footer-btn.footer-main {
+            background: var(--primary-green);
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
+        }
+
+        .footer-btn.footer-main:hover {
+            background: var(--dark-green);
+            transform: scale(1.05);
+            color: white;
+        }
+
+        .footer-btn i {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .footer-btn.footer-main i {
+            font-size: 20px;
+            margin-bottom: 0;
+        }
+
+        .footer-btn span {
+            font-size: 8px;
+            line-height: 1;
+            font-weight: 500;
+        }
+
+        .footer-btn.footer-main span {
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                margin-bottom: 70px;
+                padding-bottom: 20px;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 2000;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .analysis-container {
+                padding: 15px;
+            }
+
+            .territory-type-selector {
+                flex-direction: column;
+            }
+
+            .mobile-footer {
+                display: block;
+            }
+
+            .header-title h1 {
+                font-size: 20px;
+            }
+
+            .header-title p {
+                font-size: 12px;
+            }
+        }
+
+        /* Custom styles for the commercial analysis pattern */
+        .territory-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .territory-card .card-header {
+            background-color: var(--primary-green);
+            color: var(--white);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .territory-card .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .territory-card .card-body {
+            padding: 30px;
+        }
+
+        .financial-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .financial-item {
+            text-align: center;
+        }
+
+        .financial-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .financial-value.revenue {
+            color: var(--secondary-green);
+        }
+
+        .financial-value.expense {
+            color: #e57373; /* Red-ish for expenses */
+        }
+
+        .financial-value.balance {
+            color: var(--dark-green);
+        }
+
+        .financial-label {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+            opacity: 0.8;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--dark-gray);
+            border-bottom: 3px solid transparent;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-green);
+            border-bottom-color: var(--primary-green);
+            background-color: var(--white);
+            border-bottom: 3px solid var(--primary-green);
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: var(--primary-green);
+        }
+
+        .tab-content {
+            margin-top: 20px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 0 0 10px 10px;
+            padding: 30px;
+            background-color: var(--white);
+        }
+
+        .tab-pane h5 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 20px;
+        }
+
+        .tab-pane .chart-container {
+            height: 350px;
+        }
+
+        .tab-pane .data-table {
+            font-size: 14px;
+        }
+
+        .tab-pane .data-table th {
+            background: var(--light-green);
+            color: var(--dark-green);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="/static/images/ferticore-logo-full.png" alt="FertiCore" class="logo-image">
+                <div class="logo-subtitle">Sistema de Visualização Agrícola</div>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/">
+                    <i class="fas fa-map"></i>
+                    Mapa Principal
+                </a>
+            </li>
+            <li>
+                <a href="/analise-potencial">
+                    <i class="fas fa-chart-area"></i>
+                    Análise Comercial
+                </a>
+            </li>
+            <li>
+                <a href="/analise-territorial" class="active">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Análise Territorial
+                </a>
+            </li>
+            <li>
+                <a href="/revendas">
+                    <i class="fas fa-store"></i>
+                    Cadastro de Revendas
+                </a>
+            </li>
+            <li>
+                <a href="/vendedores">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastro de Vendedores
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                    <i class="fas fa-download"></i>
+                    Exportações
+                </a>
+            </li>
+            <li>
+                <a href="#" onclick="alert('Funcionalidade em desenvolvimento')">
+                    <i class="fas fa-cog"></i>
+                    Configurações
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <!-- Header Bar -->
+        <div class="content-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-map-marked-alt"></i> Análise Territorial</h1>
+                    <p>Análise completa de dados por município ou estado</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Container -->
+        <div class="analysis-container">
+            <!-- Territory Selector -->
+            <div class="territory-selector">
+                <h3 class="selector-title">
+                    <i class="fas fa-crosshairs"></i>
+                    Selecionar Território para Análise
+                </h3>
+
+                <!-- Territory Type Selector -->
+                <div class="territory-type-selector">
+                    <button class="territory-type-btn active" data-type="municipality">
+                        <i class="fas fa-city me-2"></i>
+                        Por Município
+                    </button>
+                    <button class="territory-type-btn" data-type="state">
+                        <i class="fas fa-map me-2"></i>
+                        Por Estado
+                    </button>
+                </div>
+
+                <!-- Municipality Selection -->
+                <div class="territory-selection active" id="municipality-selection">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    Estado (Filtro)
+                                </label>
+                                <select id="state-filter" class="form-select">
+                                    <option value="">Todos os estados</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-city me-1"></i>
+                                    Município Selecionado
+                                </label>
+                                <select id="municipality-select" class="form-select">
+                                    <option value="">Selecione um município...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- State Selection -->
+                <div class="territory-selection" id="state-selection">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-map me-1"></i>
+                            Estado
+                        </label>
+                        <select id="state-select" class="form-select">
+                            <option value="">Selecione um estado...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <button class="btn btn-analyze" id="analyze-btn" disabled>
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Iniciar Análise Territorial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            <div class="analysis-results" id="analysis-results">
+                <!-- Loading State -->
+                <div class="loading" id="loading-state">
+                    <i class="fas fa-spinner"></i>
+                    <h4>Analisando território...</h4>
+                    <p>Coletando dados de todas as fontes disponíveis</p>
+                </div>
+
+                <!-- Analysis Content Placeholder -->
+                <div id="analysis-content">
+                    <!-- Analysis results will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Footer (only visible on mobile) -->
+    <footer class="mobile-footer">
+        <div class="mobile-footer-content">
+            <div class="footer-section">
+                <a href="/analise-territorial" class="footer-btn">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Análise Territorial</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/analise-potencial" class="footer-btn">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Análise Comercial</span>
+                </a>
+            </div>
+            <div class="footer-section footer-center">
+                <a href="/" class="footer-btn footer-main">
+                    <i class="fas fa-map"></i>
+                    <span>Mapa</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/revendas" class="footer-btn">
+                    <i class="fas fa-store"></i>
+                    <span>Revendas</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <a href="/vendedores" class="footer-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Vendedores</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let currentAnalysisType = 'municipality';
+        let currentTerritory = null;
+        let municipalitiesData = [];
+        let statesData = [];
+        let currentAnalysisData = null; // Variable to store the fetched analysis data
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadStatesData();
+            loadMunicipalitiesData();
+        });
+
+        function setupEventListeners() {
+            // Sidebar toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            if (menuToggle) {
+                menuToggle.addEventListener('click', toggleSidebar);
+            }
+
+            // Territory type buttons
+            document.querySelectorAll('.territory-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTerritoryType(this.dataset.type);
+                });
+            });
+
+            // State filter for municipalities
+            document.getElementById('state-filter').addEventListener('change', filterMunicipalities);
+
+            // Municipality selection
+            document.getElementById('municipality-select').addEventListener('change', function() {
+                const selected = this.value;
+                currentTerritory = selected ? {
+                    type: 'municipality',
+                    code: selected,
+                    name: this.options[this.selectedIndex].text
+                } : null;
+                updateAnalyzeButton();
+            });
+
+            // State selection
+            document.getElementById('state-select').addEventListener('change', function() {
+                const selected = this.value;
+                currentTerritory = selected ? {
+                    type: 'state',
+                    code: selected,
+                    name: this.options[this.selectedIndex].text
+                } : null;
+                updateAnalyzeButton();
+            });
+
+            // Analyze button
+            document.getElementById('analyze-btn').addEventListener('click', startAnalysis);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            const menuToggle = document.getElementById('menu-toggle');
+
+            if (window.innerWidth <= 768) {
+                // Mobile behavior
+                sidebar.classList.toggle('active');
+                const icon = menuToggle.querySelector('i');
+                if (sidebar.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            } else {
+                // Desktop behavior
+                sidebar.classList.toggle('hidden');
+                mainContent.classList.toggle('sidebar-hidden');
+                const icon = menuToggle.querySelector('i');
+                if (sidebar.classList.contains('hidden')) {
+                    icon.className = 'fas fa-bars';
+                } else {
+                    icon.className = 'fas fa-times';
+                }
+            }
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                    const icon = menuToggle.querySelector('i');
+                    icon.className = 'fas fa-bars';
+                }
+            }
+        });
+
+        function switchTerritoryType(type) {
+            currentAnalysisType = type;
+
+            // Update buttons
+            document.querySelectorAll('.territory-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            // Update selections
+            document.querySelectorAll('.territory-selection').forEach(sel => {
+                sel.classList.remove('active');
+            });
+            document.getElementById(`${type}-selection`).classList.add('active');
+
+            // Reset current territory
+            currentTerritory = null;
+            updateAnalyzeButton();
+        }
+
+        async function loadStatesData() {
+            try {
+                const response = await fetch('/api/brazilian-states');
+                const data = await response.json();
+
+                if (data.success) {
+                    statesData = data.states;
+                    populateStatesSelect();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estados:', error);
+            }
+        }
+
+        function populateStatesSelect() {
+            const stateFilter = document.getElementById('state-filter');
+            const stateSelect = document.getElementById('state-select');
+
+            // Populate state filter
+            stateFilter.innerHTML = '<option value="">Todos os estados</option>';
+            statesData.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state.code;
+                option.textContent = `${state.name} (${state.code})`;
+                stateFilter.appendChild(option);
+            });
+
+            // Populate state select
+            stateSelect.innerHTML = '<option value="">Selecione um estado...</option>';
+            statesData.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state.code;
+                option.textContent = `${state.name} (${state.code})`;
+                stateSelect.appendChild(option);
+            });
+        }
+
+        async function loadMunicipalitiesData() {
+            try {
+                // Load from multiple crop data sources to get complete municipality list
+                const response = await fetch('/api/crops');
+                const cropsData = await response.json();
+
+                if (cropsData.success && cropsData.crops.length > 0) {
+                    const municipalitiesMap = new Map();
+
+                    // Load from multiple crops to ensure we have a comprehensive list
+                    const cropsToCheck = cropsData.crops.slice(0, 10); // Use first 10 crops for performance
+
+                    for (const crop of cropsToCheck) {
+                        try {
+                            const cropResponse = await fetch(`/api/crop-data/${encodeURIComponent(crop)}`);
+                            const cropData = await cropResponse.json();
+
+                            if (cropData.success) {
+                                Object.entries(cropData.data).forEach(([code, info]) => {
+                                    if (!municipalitiesMap.has(code)) {
+                                        municipalitiesMap.set(code, {
+                                            code: code,
+                                            name: info.municipality_name,
+                                            state: info.state_code,
+                                            fullName: `${info.municipality_name} (${info.state_code})`
+                                        });
+                                    }
+                                });
+                            }
+                        } catch (error) {
+                            console.error(`Erro ao carregar dados da cultura ${crop}:`, error);
+                        }
+                    }
+
+                    municipalitiesData = Array.from(municipalitiesMap.values());
+                    municipalitiesData.sort((a, b) => a.name.localeCompare(b.name));
+                    populateMunicipalitiesSelect();
+                    console.log(`Carregados ${municipalitiesData.length} municípios`);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar municípios:', error);
+            }
+        }
+
+        function populateMunicipalitiesSelect() {
+            const municipalitySelect = document.getElementById('municipality-select');
+            municipalitySelect.innerHTML = '<option value="">Selecione um município...</option>';
+
+            municipalitiesData.forEach(municipality => {
+                const option = document.createElement('option');
+                option.value = municipality.code;
+                option.textContent = municipality.fullName;
+                municipalitySelect.appendChild(option);
+            });
+        }
+
+        function filterMunicipalities() {
+            const stateFilter = document.getElementById('state-filter').value;
+            const municipalitySelect = document.getElementById('municipality-select');
+
+            municipalitySelect.innerHTML = '<option value="">Selecione um município...</option>';
+
+            let filteredMunicipalities = municipalitiesData;
+
+            if (stateFilter) {
+                filteredMunicipalities = filteredMunicipalities.filter(m => m.state === stateFilter);
+            }
+
+            // Limitar a 500 municípios para melhor performance
+            filteredMunicipalities.slice(0, 500).forEach(municipality => {
+                const option = document.createElement('option');
+                option.value = municipality.code;
+                option.textContent = municipality.fullName;
+                municipalitySelect.appendChild(option);
+            });
+        }
+
+        function updateAnalyzeButton() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const hasSelection = currentTerritory !== null;
+
+            analyzeBtn.disabled = !hasSelection;
+
+            if (hasSelection) {
+                analyzeBtn.innerHTML = `<i class="fas fa-chart-bar me-2"></i>Analisar ${currentTerritory.name}`;
+            } else {
+                analyzeBtn.innerHTML = '<i class="fas fa-chart-bar me-2"></i>Iniciar Análise Territorial';
+            }
+        }
+
+        async function startAnalysis() {
+            if (!currentTerritory) return;
+
+            // Show results container and loading
+            document.getElementById('analysis-results').classList.add('show');
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('analysis-content').innerHTML = ''; // Clear previous results
+
+            try {
+                console.log('Iniciando análise para:', currentTerritory);
+                currentAnalysisData = await performTerritorialAnalysis(currentTerritory);
+
+                // Hide loading
+                document.getElementById('loading-state').style.display = 'none';
+
+                // Render the analysis using the new function
+                renderAnalysis(currentAnalysisData);
+
+                console.log('Análise completada com sucesso:', currentAnalysisData);
+
+            } catch (error) {
+                console.error('Erro na análise:', error);
+
+                // Hide loading and show error
+                document.getElementById('loading-state').style.display = 'none';
+
+                // Show error in a dedicated section within analysis-content
+                const errorHtml = `
+                    <div class="data-section" style="background: #ffe6e6; border-left: 4px solid #f44336;">
+                        <div style="text-align: center; padding: 40px; color: #d32f2f;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px;"></i>
+                            <h4>Erro na análise</h4>
+                            <p>Não foi possível completar a análise: ${error.message}</p>
+                            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
+                                <i class="fas fa-refresh"></i> Tentar Novamente
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('analysis-content').innerHTML = errorHtml;
+            }
+        }
+
+        function renderAnalysis(analysisData) {
+            if (!analysisData) return;
+
+            const { territory, summary, crops, fertilizers, agrotoxicos, consultoria, corretivos, escolaridade, receitas, despesas } = analysisData;
+            const container = document.getElementById('analysis-content');
+
+            // Calculate financial summary
+            const totalReceita = summary.totalRevenue || 0;
+            const totalDespesa = summary.totalExpenses || 0;
+            const saldo = totalReceita - totalDespesa;
+
+            const territoryId = `territory-${Date.now()}`;
+
+            container.innerHTML = `
+                <div class="card territory-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-map-marked-alt me-2"></i>
+                            Análise Territorial - ${territory.name}
+                        </h5>
+                        <small>
+                            Tipo: ${territory.type === 'municipality' ? 'Município' : 'Estado'} |
+                            Código: ${territory.code}
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <!-- Summary -->
+                        <div class="financial-summary">
+                            <div class="financial-item">
+                                <div class="financial-value revenue">R$ ${formatNumber(totalReceita)}</div>
+                                <div class="financial-label">Receita Total</div>
+                            </div>
+                            <div class="financial-item">
+                                <div class="financial-value expense">R$ ${formatNumber(totalDespesa)}</div>
+                                <div class="financial-label">Despesa Total</div>
+                            </div>
+                            <div class="financial-item">
+                                <div class="financial-value balance">R$ ${formatNumber(saldo)}</div>
+                                <div class="financial-label">Saldo</div>
+                            </div>
+                            <div class="financial-item">
+                                <div class="financial-value">${formatNumber(summary.totalHectares)} ha</div>
+                                <div class="financial-label">Área Total</div>
+                            </div>
+                            <div class="financial-item">
+                                <div class="financial-value">${formatNumber(summary.totalEstablishments)}</div>
+                                <div class="financial-label">Estabelecimentos</div>
+                            </div>
+                        </div>
+
+                        <!-- Tabs for detailed analysis by data source -->
+                        <ul class="nav nav-tabs" id="data-source-tabs-${territoryId}" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="financial-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#financial-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-dollar-sign"></i> Receitas e Despesas
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="crops-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#crops-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-seedling"></i> Culturas (${crops.length})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="fertilizers-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#fertilizers-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-flask"></i> Fertilizantes (${fertilizers.length})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="agrotoxicos-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#agrotoxicos-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-spray-can"></i> Agrotóxicos (${agrotoxicos.length})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="consultoria-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#consultoria-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-user-tie"></i> Consultoria (${consultoria.length})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="corretivos-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#corretivos-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-vial"></i> Corretivos (${corretivos.length})
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="escolaridade-tab-${territoryId}" data-bs-toggle="tab"
+                                        data-bs-target="#escolaridade-${territoryId}" type="button" role="tab">
+                                    <i class="fas fa-graduation-cap"></i> Escolaridade (${escolaridade.length})
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="data-source-tabs-content-${territoryId}">
+                            <!-- Financial Tab -->
+                            <div class="tab-pane fade show active" id="financial-${territoryId}" role="tabpanel">
+                                ${createFinancialTabContent(territoryId, { receitas, despesas, totalReceita, totalDespesa, saldo })}
+                            </div>
+
+                            <!-- Crops Tab -->
+                            <div class="tab-pane fade" id="crops-${territoryId}" role="tabpanel">
+                                ${createCropsTabContent(territoryId, crops, summary.totalHectares)}
+                            </div>
+
+                            <!-- Fertilizers Tab -->
+                            <div class="tab-pane fade" id="fertilizers-${territoryId}" role="tabpanel">
+                                ${createCategoryTabContent(territoryId, 'fertilizers', fertilizers, 'estabelecimentos')}
+                            </div>
+
+                            <!-- Agrotoxicos Tab -->
+                            <div class="tab-pane fade" id="agrotoxicos-${territoryId}" role="tabpanel">
+                                ${createCategoryTabContent(territoryId, 'agrotoxicos', agrotoxicos, 'estabelecimentos')}
+                            </div>
+
+                            <!-- Consultoria Tab -->
+                            <div class="tab-pane fade" id="consultoria-${territoryId}" role="tabpanel">
+                                ${createCategoryTabContent(territoryId, 'consultoria', consultoria, 'estabelecimentos')}
+                            </div>
+
+                            <!-- Corretivos Tab -->
+                            <div class="tab-pane fade" id="corretivos-${territoryId}" role="tabpanel">
+                                ${createCategoryTabContent(territoryId, 'corretivos', corretivos, 'estabelecimentos')}
+                            </div>
+
+                            <!-- Escolaridade Tab -->
+                            <div class="tab-pane fade" id="escolaridade-${territoryId}" role="tabpanel">
+                                ${createCategoryTabContent(territoryId, 'escolaridade', escolaridade, 'pessoas')}
+                            </div>
+                        </div>
+
+                        <!-- Export Buttons -->
+                        <div class="d-flex justify-content-end align-items-center mb-3">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success btn-sm" onclick="exportTerritorialAnalysisExcel('${territory.code}', '${territory.name}', '${territory.type}')">
+                                    <i class="fas fa-file-excel me-1"></i>
+                                    Exportar Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Create charts after the content is added to DOM
+            setTimeout(() => {
+                createFinancialCharts(territoryId, { receitas, despesas });
+                createCropsCharts(territoryId, crops);
+                createCategoryCharts(territoryId, 'fertilizers', fertilizers);
+                createCategoryCharts(territoryId, 'agrotoxicos', agrotoxicos);
+                createCategoryCharts(territoryId, 'consultoria', consultoria);
+                createCategoryCharts(territoryId, 'corretivos', corretivos);
+                createCategoryCharts(territoryId, 'escolaridade', escolaridade);
+            }, 100);
+        }
+
+        async function performTerritorialAnalysis(territory) {
+            const analysis = {
+                territory: territory,
+                summary: {},
+                crops: [],
+                fertilizers: [],
+                agrotoxicos: [],
+                consultoria: [],
+                corretivos: [],
+                escolaridade: [],
+                receitas: [],
+                despesas: []
+            };
+
+            let totalHectares = 0;
+            let totalEstablishments = 0;
+            let totalRevenue = 0;
+            let totalExpenses = 0;
+
+            try {
+                // Analyze crops
+                const cropsResponse = await fetch('/api/crops');
+                if (!cropsResponse.ok) {
+                    throw new Error(`Erro ao buscar culturas: ${cropsResponse.status}`);
+                }
+                const cropsData = await cropsResponse.json();
+
+                if (cropsData.success) {
+                    for (const crop of cropsData.crops) {
+                        try {
+                            const cropResponse = await fetch(`/api/crop-data/${encodeURIComponent(crop)}`);
+                            if (!cropResponse.ok) continue;
+
+                            const cropData = await cropResponse.json();
+
+                            if (cropData.success) {
+                                let cropValue = 0;
+
+                                if (territory.type === 'municipality') {
+                                    if (cropData.data[territory.code]) {
+                                        cropValue = cropData.data[territory.code].harvested_area || 0;
+                                    }
+                                } else {
+                                    // Sum all municipalities in state
+                                    Object.values(cropData.data).forEach(municipalityData => {
+                                        if (municipalityData.state_code === territory.code) {
+                                            cropValue += municipalityData.harvested_area || 0;
+                                        }
+                                    });
+                                }
+
+                                if (cropValue > 0) {
+                                    analysis.crops.push({
+                                        name: crop,
+                                        value: cropValue
+                                    });
+                                    totalHectares += cropValue;
+                                }
+                            }
+                        } catch (error) {
+                            console.warn(`Erro ao processar cultura ${crop}:`, error);
+                        }
+                    }
+                }
+
+                // Analyze other data sources with better error handling
+                const dataSources = [
+                    { type: 'fertilizers', api: '/api/fertilizer-categories', endpoint: '/api/fertilizer-data' },
+                    { type: 'agrotoxicos', api: '/api/agrotoxico/categories', endpoint: '/api/agrotoxico' },
+                    { type: 'consultoria', api: '/api/consultoria/categories', endpoint: '/api/consultoria' },
+                    { type: 'corretivos', api: '/api/corretivos/categories', endpoint: '/api/corretivos' },
+                    { type: 'escolaridade', api: '/api/escolaridade/categories', endpoint: '/api/escolaridade' },
+                    { type: 'receitas', api: '/api/receita/categories', endpoint: '/api/receita' },
+                    { type: 'despesas', api: '/api/despesa/categories', endpoint: '/api/despesa' }
+                ];
+
+                for (const source of dataSources) {
+                    try {
+                        const categoriesResponse = await fetch(source.api);
+                        if (!categoriesResponse.ok) continue;
+
+                        const categoriesData = await categoriesResponse.json();
+
+                        if (categoriesData.success && categoriesData.categories) {
+                            for (const category of categoriesData.categories) {
+                                try {
+                                    const dataResponse = await fetch(`${source.endpoint}/${encodeURIComponent(category)}`);
+                                    if (!dataResponse.ok) continue;
+
+                                    const data = await dataResponse.json();
+
+                                    if (data.success && data.data) {
+                                        let categoryValue = 0;
+
+                                        if (territory.type === 'municipality') {
+                                            if (data.data[territory.code]) {
+                                                categoryValue = data.data[territory.code].value || 0;
+                                            }
+                                        } else {
+                                            // Sum all municipalities in state
+                                            Object.values(data.data).forEach(municipalityData => {
+                                                if (municipalityData.state_code === territory.code) {
+                                                    categoryValue += municipalityData.value || 0;
+                                                }
+                                            });
+                                        }
+
+                                        if (categoryValue > 0) {
+                                            analysis[source.type].push({
+                                                name: category,
+                                                value: categoryValue
+                                            });
+
+                                            if (source.type === 'receitas') {
+                                                totalRevenue += categoryValue;
+                                            } else if (source.type === 'despesas') {
+                                                totalExpenses += categoryValue;
+                                            } else if (!['escolaridade'].includes(source.type)) {
+                                                totalEstablishments += categoryValue;
+                                            }
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.warn(`Erro ao processar categoria ${category} de ${source.type}:`, error);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Erro ao processar fonte ${source.type}:`, error);
+                    }
+                }
+
+                // Sort all arrays by value
+                Object.keys(analysis).forEach(key => {
+                    if (Array.isArray(analysis[key])) {
+                        analysis[key].sort((a, b) => b.value - a.value);
+                    }
+                });
+
+                analysis.summary = {
+                    totalHectares,
+                    totalEstablishments,
+                    totalRevenue,
+                    totalExpenses
+                };
+
+            } catch (error) {
+                console.error('Erro na análise territorial:', error);
+                throw new Error(`Falha na análise: ${error.message}`);
+            }
+
+            return analysis;
+        }
+
+        // Helper functions for rendering charts and tables (kept from original for completeness)
+
+        function formatNumber(num) {
+            if (isNaN(num)) return 'N/A';
+            return num.toLocaleString('pt-BR');
+        }
+
+        function createFinancialTabContent(territoryId, financialData) {
+            const { receitas, despesas, totalReceita, totalDespesa, saldo } = financialData;
+            return `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="revenue-chart-${territoryId}"></canvas>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Receita</th>
+                                    <th>Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${receitas.slice(0, 10).map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                        <td>${formatNumber(item.value)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <canvas id="expenses-chart-${territoryId}"></canvas>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Despesa</th>
+                                    <th>Valor (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${despesas.slice(0, 10).map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                        <td>${formatNumber(item.value)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCropsTabContent(territoryId, crops, totalHectares) {
+            return `
+                <div class="chart-container">
+                    <canvas id="crops-chart-${territoryId}"></canvas>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Cultura</th>
+                            <th>Área Colhida (ha)</th>
+                            <th>Participação (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${crops.slice(0, 20).map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${formatNumber(item.value)}</td>
+                                <td>${((item.value / totalHectares) * 100).toFixed(1)}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function createCategoryTabContent(territoryId, categoryType, data, unitLabel) {
+            return `
+                <div class="chart-container">
+                    <canvas id="${categoryType}-chart-${territoryId}"></canvas>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>${getCategoryHeader(categoryType)}</th>
+                            <th>${unitLabel}</th>
+                            <th>Participação (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.slice(0, 20).map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${formatNumber(item.value)}</td>
+                                <td>${((item.value / data.reduce((sum, i) => sum + i.value, 0)) * 100).toFixed(1)}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function getCategoryHeader(type) {
+            switch (type) {
+                case 'fertilizers': return 'Categoria';
+                case 'agrotoxicos': return 'Categoria';
+                case 'consultoria': return 'Tipo';
+                case 'corretivos': return 'Categoria';
+                case 'escolaridade': return 'Nível';
+                default: return 'Item';
+            }
+        }
+
+        function createFinancialCharts(territoryId, data) {
+            createChart(`revenue-chart-${territoryId}`, 'Receitas', data.receitas, 'R$');
+            createChart(`expenses-chart-${territoryId}`, 'Despesas', data.despesas, 'R$');
+        }
+
+        function createCropsCharts(territoryId, crops) {
+            createChart(`crops-chart-${territoryId}`, 'Culturas', crops, 'ha');
+        }
+
+        function createCategoryCharts(territoryId, categoryType, data, unitLabel) {
+            createChart(`${categoryType}-chart-${territoryId}`, getCategoryHeader(categoryType), data, unitLabel);
+        }
+
+        function createChart(canvasId, title, data, unit) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            if (!data || data.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.font = '16px Arial';
+                ctx.fillText('Nenhum dado disponível', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const chartData = data.slice(0, 10); // Limit to top 10 for charts
+            const colors = generateColors(chartData.length);
+
+            canvas.chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.map(item => item.name.length > 25 ? item.name.substring(0, 25) + '...' : item.name),
+                    datasets: [{
+                        data: chartData.map(item => item.value),
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color.replace('0.8', '1')), // Opaque border color
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title,
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    let formattedValue;
+                                    if (unit === 'R$') {
+                                        formattedValue = `R$ ${formatNumber(value)}`;
+                                    } else {
+                                        formattedValue = `${formatNumber(value)} ${unit}`;
+                                    }
+                                    return `${context.label}: ${formattedValue}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateColors(count) {
+            const baseColors = [
+                'rgba(124, 179, 66, 0.8)',  // Primary Green
+                'rgba(139, 195, 74, 0.8)',  // Lighter Green
+                'rgba(104, 159, 56, 0.8)',  // Darker Green
+                'rgba(76, 175, 80, 0.8)',   // Material Green 500
+                'rgba(67, 160, 71, 0.8)',   // Material Green 600
+                'rgba(56, 142, 60, 0.8)',   // Material Green 700
+                'rgba(46, 125, 50, 0.8)',   // Material Green 800
+                'rgba(102, 187, 106, 0.8)', // Material Green 300
+                'rgba(129, 199, 132, 0.8)', // Material Green 200
+                'rgba(165, 214, 167, 0.8)'  // Material Green 100
+            ];
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+
+        function exportTerritorialAnalysisExcel(code, name, type) {
+            if (!currentAnalysisData) {
+                alert('Nenhum dado de análise disponível para exportar.');
+                return;
+            }
+
+            // Implement Excel export logic here (e.g., using SheetJS)
+            // This is a placeholder function.
+            alert(`Exportando análise para ${name} (${type})...\nFuncionalidade de exportação em desenvolvimento.`);
+        }
+    </script>
+</body>
+</html>

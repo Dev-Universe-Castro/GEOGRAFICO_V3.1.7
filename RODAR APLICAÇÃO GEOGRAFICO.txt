@@ -1,0 +1,9 @@
+RODAR APLICAÇÃO GEOGRAFICO (Windows)
+
+py -m pip install flask gunicorn werkzeug pandas openpyxl psycopg2-binary sqlalchemy email-validator Flask-Migrate reportlab matplotlib pillow cloudflared
+
+python main.py
+
+winget install --id Cloudflare.cloudflared
+
+cloudflared tunnel --url http://localhost:5000 (outro cmd)
